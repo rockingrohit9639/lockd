@@ -1,5 +1,6 @@
 import type { Direction, Room, RoomObject } from "../shared/types";
 import { getObjectDef } from "../shared/objects";
+import { ObjectSprite, hasSprite } from "../shared/object-sprites";
 
 interface BuilderCanvasProps {
   room: Room;
@@ -100,9 +101,12 @@ export function BuilderCanvas({
                 top: `${obj.position.y}%`,
                 width: `${obj.size.width}px`,
                 height: `${obj.size.height}px`,
-                backgroundColor: def?.color ?? "#666",
+                backgroundColor: hasSprite(obj.type) ? "transparent" : (def?.color ?? "#666"),
               }}
             >
+              {hasSprite(obj.type) && (
+                <ObjectSprite type={obj.type} width={obj.size.width} height={obj.size.height} />
+              )}
               {/* Object label */}
               <span className="absolute -bottom-5 left-0 font-mono text-[9px] text-white/50 whitespace-nowrap">
                 {obj.name}

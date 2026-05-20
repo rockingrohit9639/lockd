@@ -1,5 +1,6 @@
 import type { Direction, RoomObject } from "../shared/types";
 import { OBJECT_CATALOG, type ObjectDefinition } from "../shared/objects";
+import { ObjectSprite, hasSprite } from "../shared/object-sprites";
 
 interface ObjectPaletteProps {
   currentView: Direction;
@@ -53,10 +54,16 @@ export function ObjectPalette({ currentView, onAddObject }: ObjectPaletteProps) 
                   onClick={() => handleAdd(def)}
                   className="w-full flex items-center gap-2 px-2 py-1.5 text-left hover:bg-white/5 transition-colors group"
                 >
-                  <div
-                    className="w-4 h-4 shrink-0 border border-white/10 group-hover:border-white/30"
-                    style={{ backgroundColor: def.color }}
-                  />
+                  <div className="w-6 h-6 shrink-0 flex items-center justify-center">
+                    {hasSprite(def.type) ? (
+                      <ObjectSprite type={def.type} width={20} height={20} />
+                    ) : (
+                      <div
+                        className="w-4 h-4 border border-white/10 group-hover:border-white/30"
+                        style={{ backgroundColor: def.color }}
+                      />
+                    )}
+                  </div>
                   <span className="text-xs text-white/60 group-hover:text-white transition-colors truncate">
                     {def.name}
                   </span>

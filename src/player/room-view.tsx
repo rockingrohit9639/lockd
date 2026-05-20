@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import type { Direction, GameState, Room, RoomObject } from "../shared/types";
 import { getObjectDef } from "../shared/objects";
+import { ObjectSprite, hasSprite } from "../shared/object-sprites";
 
 interface RoomViewProps {
   room: Room;
@@ -75,20 +76,24 @@ interface RoomObjectViewProps {
 
 function RoomObjectView({ object, onClick }: RoomObjectViewProps) {
   const def = getObjectDef(object.type);
+  const showSprite = hasSprite(object.type);
 
   return (
     <button
       onClick={onClick}
-      className="absolute cursor-pointer hover:brightness-125 hover:scale-105 transition-all rounded-md border-2 border-transparent hover:border-yellow-400/60 hover:shadow-lg hover:shadow-yellow-400/10 group"
+      className="absolute cursor-pointer hover:brightness-125 hover:scale-105 transition-all border-2 border-transparent hover:border-yellow-400/60 hover:shadow-lg hover:shadow-yellow-400/10 group"
       style={{
         left: `${object.position.x}%`,
         top: `${object.position.y}%`,
         width: `${object.size.width}px`,
         height: `${object.size.height}px`,
-        backgroundColor: def?.color ?? "#666",
+        backgroundColor: showSprite ? "transparent" : (def?.color ?? "#666"),
       }}
       title={object.name}
     >
+      {showSprite && (
+        <ObjectSprite type={object.type} width={object.size.width} height={object.size.height} />
+      )}
       <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[11px] text-foreground/80 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 px-1.5 py-0.5 rounded">
         {object.name}
       </span>
