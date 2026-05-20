@@ -138,12 +138,22 @@ export function BuilderCanvas({
         ref={containerRef}
         className="relative w-full max-w-3xl aspect-[16/10] border border-white/10 overflow-hidden"
         style={{
-          background: "linear-gradient(180deg, #1c1c2e 0%, #252540 60%, #2a2a3a 100%)",
+          background: "#1a1a1a url('https://images.unsplash.com/photo-1531685250784-7569952593d2?w=1200&q=80&fit=crop') center/cover",
         }}
         onClick={handleCanvasClick}
       >
+        {/* Darkening overlay */}
+        <div className="absolute inset-0 bg-black/40" />
+
         {/* Floor */}
-        <div className="absolute bottom-0 left-0 right-0 h-1/4 border-t border-white/5" style={{ background: "linear-gradient(180deg, #3d2e1a 0%, #2a1f0f 100%)" }} />
+        <div
+          className="absolute bottom-0 left-0 right-0 h-1/4 border-t border-white/[0.06]"
+          style={{
+            background: "#111 url('https://images.unsplash.com/photo-1573869908170-64b53a60d8da?w=1200&q=80&fit=crop') center/cover",
+          }}
+        >
+          <div className="absolute inset-0 bg-black/50" />
+        </div>
 
         {/* Grid overlay */}
         <div
