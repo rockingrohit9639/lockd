@@ -38,10 +38,10 @@ export function RoomView({ room, state, onClickObject }: RoomViewProps) {
   return (
     <div className="relative w-full h-full rounded-xl overflow-hidden select-none border border-border/50">
       {/* Wall background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-800 via-slate-850 to-slate-900" />
+      <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, #1c1c2e 0%, #252540 60%, #2a2a3a 100%)" }} />
 
       {/* Floor */}
-      <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-amber-950/80 to-amber-900/40" />
+      <div className="absolute bottom-0 left-0 right-0 h-1/4 border-t border-white/5" style={{ background: "linear-gradient(180deg, #3d2e1a 0%, #2a1f0f 100%)" }} />
 
       {/* Ceiling accent */}
       <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-orange-500/20" />

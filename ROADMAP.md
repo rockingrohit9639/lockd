@@ -26,3 +26,13 @@ A searchable library of assets that users can upload and use in their rooms.
 - Upload flow: drag-and-drop or file picker with crop/resize
 - Auth required for uploads; browsing public assets is open
 - Sprite sheet support for animated objects
+
+## Custom Room Backgrounds
+
+Room backgrounds (walls + floor) should be customizable per room.
+
+- Default: built-in gradient (current dark purple wall + wood floor)
+- Users can upload custom background images from the asset library
+- Each wall direction (N/E/S/W) can have its own background
+- Floor texture is separate and also customizable
+- Backgrounds are selected via the same ⌘+K dialog or a dedicated "Room Settings" panel

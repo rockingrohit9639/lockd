@@ -103,15 +103,47 @@ export function BuilderCanvas({
     window.addEventListener("mouseup", onMouseUp);
   }
 
+  function handleResizeMouseDown(e: React.MouseEvent, obj: RoomObject) {
+    e.stopPropagation();
+    e.preventDefault();
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startW = obj.size.width;
+    const startH = obj.size.height;
+
+    function onMouseMove(me: MouseEvent) {
+      const dx = me.clientX - startX;
+      const dy = me.clientY - startY;
+      onUpdateObject(obj.id, {
+        size: {
+          width: Math.max(20, startW + dx),
+          height: Math.max(20, startH + dy),
+        },
+      });
+    }
+
+    function onMouseUp() {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    }
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+  }
+
   return (
     <div className="h-full flex items-center justify-center p-6 bg-[#080808]">
       <div
         ref={containerRef}
-        className="relative w-full max-w-3xl aspect-[16/10] border border-white/10 bg-gradient-to-b from-[#1a1a2e] to-[#16213e] overflow-hidden"
+        className="relative w-full max-w-3xl aspect-[16/10] border border-white/10 overflow-hidden"
+        style={{
+          background: "linear-gradient(180deg, #1c1c2e 0%, #252540 60%, #2a2a3a 100%)",
+        }}
         onClick={handleCanvasClick}
       >
         {/* Floor */}
-        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-[#1a1207] border-t border-white/5" />
+        <div className="absolute bottom-0 left-0 right-0 h-1/4 border-t border-white/5" style={{ background: "linear-gradient(180deg, #3d2e1a 0%, #2a1f0f 100%)" }} />
 
         {/* Grid overlay */}
         <div
@@ -158,6 +190,12 @@ export function BuilderCanvas({
               <span className="absolute -bottom-5 left-0 font-mono text-[9px] text-white/50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
                 {obj.name}
               </span>
+              {isSelected && (
+                <div
+                  onMouseDown={(e) => handleResizeMouseDown(e, obj)}
+                  className="absolute -bottom-1 -right-1 w-3 h-3 bg-[#ccff00] cursor-se-resize"
+                />
+              )}
             </div>
           );
         })}
