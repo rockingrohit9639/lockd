@@ -1,7 +1,6 @@
-import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Room } from "../shared/types";
 import { getObjectDef } from "../shared/objects";
+import { ObjectSprite, hasSprite } from "../shared/object-sprites";
 
 interface InventoryProps {
   items: string[];
@@ -12,11 +11,18 @@ interface InventoryProps {
 
 export function Inventory({ items, room, selectedItem, onSelectItem }: InventoryProps) {
   return (
-    <div className="border-t px-4 py-3">
-      <div className="flex items-center gap-3">
-        <span className="text-muted-foreground text-sm font-medium">Inventory</span>
+    <div className="h-full flex flex-col bg-[#0a0a0a] border-l border-white/10">
+      <div className="px-4 py-3 border-b border-white/10">
+        <span className="font-mono text-[10px] uppercase tracking-widest text-white/40">
+          // Inventory ({items.length})
+        </span>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-3 space-y-2">
         {items.length === 0 && (
-          <span className="text-muted-foreground/50 text-sm italic">nothing yet...</span>
+          <p className="font-mono text-xs text-white/20 text-center py-8">
+            Empty
+          </p>
         )}
         {items.map((itemId) => {
           const obj = room.objects.find((o) => o.id === itemId);
@@ -24,30 +30,40 @@ export function Inventory({ items, room, selectedItem, onSelectItem }: Inventory
           const isSelected = selectedItem === itemId;
 
           return (
-            <Tooltip key={itemId}>
-              <TooltipTrigger
-                onClick={() => onSelectItem(isSelected ? null : itemId)}
-                className={`w-12 h-12 rounded-md border-2 flex items-center justify-center text-xs font-bold transition-all ${
-                  isSelected
-                    ? "border-yellow-400 bg-yellow-400/20 scale-110 shadow-lg shadow-yellow-400/20"
-                    : "border-border bg-muted hover:border-muted-foreground/50"
-                }`}
-                style={{ color: def?.color ?? "#fff" }}
-              >
-                {obj?.name?.slice(0, 3) ?? "?"}
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{obj?.name ?? itemId}</p>
-              </TooltipContent>
-            </Tooltip>
+            <button
+              key={itemId}
+              onClick={() => onSelectItem(isSelected ? null : itemId)}
+              className={`w-full flex items-center gap-3 px-3 py-2 transition-colors ${
+                isSelected
+                  ? "bg-[#ccff00]/10 border border-[#ccff00]/50"
+                  : "border border-white/10 hover:border-white/20"
+              }`}
+            >
+              <div className="w-8 h-8 shrink-0 flex items-center justify-center">
+                {obj && hasSprite(obj.type) ? (
+                  <ObjectSprite type={obj.type} width={24} height={24} />
+                ) : (
+                  <div
+                    className="w-5 h-5"
+                    style={{ backgroundColor: def?.color ?? "#666" }}
+                  />
+                )}
+              </div>
+              <span className={`font-mono text-xs ${isSelected ? "text-[#ccff00]" : "text-white/70"}`}>
+                {obj?.name ?? "?"}
+              </span>
+            </button>
           );
         })}
-        {selectedItem && (
-          <Badge variant="outline" className="text-yellow-400 border-yellow-400/50 animate-pulse ml-2">
-            Click an object to use it on
-          </Badge>
-        )}
       </div>
+
+      {selectedItem && (
+        <div className="px-4 py-3 border-t border-white/10">
+          <span className="font-mono text-[10px] text-[#ccff00] uppercase tracking-widest animate-pulse">
+            Click an object to use item on
+          </span>
+        </div>
+      )}
     </div>
   );
 }

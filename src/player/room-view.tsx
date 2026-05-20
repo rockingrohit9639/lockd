@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import type { Direction, GameState, Room, RoomObject } from "../shared/types";
 import { getObjectDef } from "../shared/objects";
 import { ObjectSprite, hasSprite } from "../shared/object-sprites";
@@ -8,13 +7,6 @@ interface RoomViewProps {
   state: GameState;
   onClickObject: (id: string) => void;
 }
-
-const VIEW_LABELS: Record<Direction, string> = {
-  north: "North Wall",
-  east: "East Wall",
-  south: "South Wall",
-  west: "West Wall",
-};
 
 const NEXT_VIEW: Record<Direction, Direction> = {
   north: "east",
@@ -36,7 +28,7 @@ export function RoomView({ room, state, onClickObject }: RoomViewProps) {
   );
 
   return (
-    <div className="relative w-full h-full rounded-xl overflow-hidden select-none border border-border/50">
+    <div className="relative w-full h-full overflow-hidden select-none">
       {/* Wall background */}
       <div
         className="absolute inset-0"
@@ -56,21 +48,16 @@ export function RoomView({ room, state, onClickObject }: RoomViewProps) {
         <div className="absolute inset-0 bg-black/50" />
       </div>
 
-      {/* Ceiling accent */}
-      <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-orange-500/20" />
-
       {/* View label */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2">
-        <Badge variant="secondary" className="text-xs">
-          {VIEW_LABELS[state.currentView]}
-        </Badge>
+      <div className="absolute top-4 left-4 font-mono text-[10px] text-white/40 uppercase tracking-widest">
+        {state.currentView} wall
       </div>
 
       {/* Navigation hints */}
-      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/40 text-xs">
+      <div className="absolute left-4 bottom-[26%] font-mono text-[10px] text-white/30 uppercase tracking-widest">
         ← {PREV_VIEW[state.currentView]}
       </div>
-      <div className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/40 text-xs">
+      <div className="absolute right-4 bottom-[26%] font-mono text-[10px] text-white/30 uppercase tracking-widest">
         {NEXT_VIEW[state.currentView]} →
       </div>
 
@@ -94,7 +81,7 @@ function RoomObjectView({ object, onClick }: RoomObjectViewProps) {
   return (
     <button
       onClick={onClick}
-      className="absolute cursor-pointer hover:brightness-125 hover:scale-105 transition-all border-2 border-transparent hover:border-yellow-400/60 hover:shadow-lg hover:shadow-yellow-400/10 group"
+      className="absolute cursor-pointer transition-opacity hover:opacity-90"
       style={{
         left: `${object.position.x}%`,
         top: `${object.position.y}%`,
@@ -102,14 +89,10 @@ function RoomObjectView({ object, onClick }: RoomObjectViewProps) {
         height: `${object.size.height}px`,
         backgroundColor: showSprite ? "transparent" : (def?.color ?? "#666"),
       }}
-      title={object.name}
     >
       {showSprite && (
         <ObjectSprite type={object.type} width={object.size.width} height={object.size.height} />
       )}
-      <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[11px] text-foreground/80 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 px-1.5 py-0.5 rounded">
-        {object.name}
-      </span>
     </button>
   );
 }

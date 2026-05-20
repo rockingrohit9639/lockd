@@ -1,7 +1,5 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import type { GameState, Room } from "../shared/types";
 import { handleClick, handleUseItemOn, initializeState } from "./interaction-engine";
 import { Inventory } from "./inventory";
@@ -51,60 +49,63 @@ export function Game({ room, onExit }: GameProps) {
     []
   );
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "ArrowLeft" || e.key === "a") navigate("left");
       if (e.key === "ArrowRight" || e.key === "d") navigate("right");
-    },
-    [navigate]
-  );
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [navigate]);
 
   return (
-    <div
-      className="flex flex-col h-screen bg-background"
-      onKeyDown={handleKeyDown}
-      tabIndex={0}
-    >
+    <div className="h-screen flex flex-col bg-[#0a0a0a] text-white overflow-hidden">
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b">
-        <Button variant="ghost" size="sm" onClick={onExit}>
+      <header className="border-b border-white/10 px-4 py-3 flex items-center justify-between shrink-0">
+        <Button
+          variant="ghost"
+          onClick={onExit}
+          className="font-mono text-xs uppercase tracking-widest text-white/60 hover:text-white rounded-none px-3 py-1 h-auto"
+        >
           ← Exit
         </Button>
-        <h1 className="text-lg font-bold">{room.name}</h1>
-        <Badge variant="outline">{room.objects.length} objects</Badge>
+        <span className="font-mono text-sm font-bold">{room.name}</span>
+        <span className="font-mono text-[10px] text-white/30 uppercase tracking-widest">
+          {state.currentView}
+        </span>
       </header>
 
-      {/* Room View */}
-      <div className="flex-1 relative p-4">
-        <div className="relative w-full h-full max-w-4xl mx-auto">
-          <Button
-            variant="secondary"
-            size="icon"
+      {/* Main: Room + Inventory sidebar */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Room — takes remaining width */}
+        <div className="flex-1 relative">
+          {/* Nav buttons */}
+          <button
             onClick={() => navigate("left")}
-            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 h-14 w-10 opacity-80 hover:opacity-100"
+            className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-8 h-14 bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-colors font-mono"
           >
             ‹
-          </Button>
-          <Button
-            variant="secondary"
-            size="icon"
+          </button>
+          <button
             onClick={() => navigate("right")}
-            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 h-14 w-10 opacity-80 hover:opacity-100"
+            className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-8 h-14 bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-colors font-mono"
           >
             ›
-          </Button>
+          </button>
 
           <RoomView room={room} state={state} onClickObject={onClickObject} />
         </div>
-      </div>
 
-      {/* Inventory */}
-      <Inventory
-        items={state.inventory}
-        room={room}
-        selectedItem={selectedItem}
-        onSelectItem={setSelectedItem}
-      />
+        {/* Inventory sidebar */}
+        <aside className="w-56 shrink-0">
+          <Inventory
+            items={state.inventory}
+            room={room}
+            selectedItem={selectedItem}
+            onSelectItem={setSelectedItem}
+          />
+        </aside>
+      </div>
 
       {/* Win/Fail overlay */}
       {state.solved && <WinScreen onExit={onExit} />}
@@ -116,12 +117,12 @@ export function Game({ room, onExit }: GameProps) {
           className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 cursor-pointer backdrop-blur-sm"
           onClick={dismissMessage}
         >
-          <Card className="max-w-md animate-bounce-in">
-            <CardContent className="p-6 text-center space-y-3">
-              <p className="text-lg">{state.activeMessage}</p>
-              <p className="text-muted-foreground text-sm">click to dismiss</p>
-            </CardContent>
-          </Card>
+          <div className="border border-white/10 bg-[#0a0a0a] px-8 py-6 max-w-md text-center space-y-3">
+            <p className="font-mono text-sm text-white">{state.activeMessage}</p>
+            <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest">
+              click to dismiss
+            </p>
+          </div>
         </div>
       )}
 
@@ -136,13 +137,16 @@ export function Game({ room, onExit }: GameProps) {
 function WinScreen({ onExit }: { onExit: () => void }) {
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-      <div className="text-center space-y-6 animate-bounce-in">
-        <h2 className="text-6xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-          YOU ESCAPED!
+      <div className="text-center space-y-6">
+        <h2 className="font-mono text-5xl font-bold text-[#ccff00] uppercase tracking-widest">
+          Escaped
         </h2>
-        <p className="text-muted-foreground text-xl">Congrats, big brain energy</p>
-        <Button size="lg" onClick={onExit} className="bg-green-600 hover:bg-green-500">
-          Back to Home
+        <p className="font-mono text-sm text-white/50">you made it out</p>
+        <Button
+          onClick={onExit}
+          className="bg-[#ccff00] text-black font-mono text-xs uppercase tracking-widest font-bold rounded-none hover:bg-[#b8e600] px-6 py-2"
+        >
+          Done
         </Button>
       </div>
     </div>
@@ -152,13 +156,17 @@ function WinScreen({ onExit }: { onExit: () => void }) {
 function FailScreen({ onExit }: { onExit: () => void }) {
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-      <div className="text-center space-y-6 animate-bounce-in">
-        <h2 className="text-6xl font-bold bg-gradient-to-r from-red-400 to-rose-400 bg-clip-text text-transparent">
-          GAME OVER
+      <div className="text-center space-y-6">
+        <h2 className="font-mono text-5xl font-bold text-red-500 uppercase tracking-widest">
+          Failed
         </h2>
-        <p className="text-muted-foreground text-xl">skill issue tbh</p>
-        <Button size="lg" variant="destructive" onClick={onExit}>
-          Back to Home
+        <p className="font-mono text-sm text-white/50">skill issue</p>
+        <Button
+          variant="ghost"
+          onClick={onExit}
+          className="font-mono text-xs uppercase tracking-widest text-white/60 hover:text-white rounded-none px-6 py-2 border border-white/10"
+        >
+          Exit
         </Button>
       </div>
     </div>
