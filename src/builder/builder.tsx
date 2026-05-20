@@ -1,13 +1,16 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import type { Direction, Room, RoomObject } from "../shared/types";
+import type { Direction, Room, RoomObject, Trigger } from "../shared/types";
 import { ObjectPalette } from "./object-palette";
 import { BuilderCanvas } from "./builder-canvas";
 import { PropertiesPanel } from "./properties-panel";
+import { TriggerBuilder } from "./trigger-builder";
 
 interface BuilderProps {
   onExit: () => void;
 }
+
+type RightPanel = "properties" | "triggers";
 
 function createEmptyRoom(): Room {
   return {
@@ -24,12 +27,14 @@ export function Builder({ onExit }: BuilderProps) {
   const [room, setRoom] = useState<Room>(createEmptyRoom);
   const [currentView, setCurrentView] = useState<Direction>("north");
   const [selectedObjectId, setSelectedObjectId] = useState<string | null>(null);
+  const [rightPanel, setRightPanel] = useState<RightPanel>("properties");
 
   const selectedObject = room.objects.find((o) => o.id === selectedObjectId) ?? null;
 
   function addObject(obj: RoomObject) {
     setRoom((r) => ({ ...r, objects: [...r.objects, obj] }));
     setSelectedObjectId(obj.id);
+    setRightPanel("properties");
   }
 
   function updateObject(id: string, updates: Partial<RoomObject>) {
@@ -45,6 +50,14 @@ export function Builder({ onExit }: BuilderProps) {
       objects: r.objects.filter((o) => o.id !== id),
     }));
     setSelectedObjectId(null);
+  }
+
+  function addTrigger(trigger: Trigger) {
+    setRoom((r) => ({ ...r, triggers: [...r.triggers, trigger] }));
+  }
+
+  function deleteTrigger(id: string) {
+    setRoom((r) => ({ ...r, triggers: r.triggers.filter((t) => t.id !== id) }));
   }
 
   const views: Direction[] = ["north", "east", "south", "west"];
@@ -71,7 +84,6 @@ export function Builder({ onExit }: BuilderProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Wall tabs */}
           {views.map((v) => (
             <button
               key={v}
@@ -87,9 +99,9 @@ export function Builder({ onExit }: BuilderProps) {
           ))}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
           <span className="font-mono text-[10px] text-white/30 uppercase tracking-widest">
-            {room.objects.length} objects
+            {room.objects.length} objects · {room.triggers.length} triggers
           </span>
         </div>
       </header>
@@ -107,18 +119,56 @@ export function Builder({ onExit }: BuilderProps) {
             room={room}
             currentView={currentView}
             selectedObjectId={selectedObjectId}
-            onSelectObject={setSelectedObjectId}
+            onSelectObject={(id) => {
+              setSelectedObjectId(id);
+              if (id) setRightPanel("properties");
+            }}
             onUpdateObject={updateObject}
           />
         </main>
 
-        {/* Right: Properties */}
-        <aside className="w-72 border-l border-white/10 overflow-y-auto shrink-0">
-          <PropertiesPanel
-            object={selectedObject}
-            onUpdate={(updates) => selectedObjectId && updateObject(selectedObjectId, updates)}
-            onDelete={() => selectedObjectId && deleteObject(selectedObjectId)}
-          />
+        {/* Right: Properties / Triggers */}
+        <aside className="w-80 border-l border-white/10 overflow-y-auto shrink-0 flex flex-col">
+          {/* Tab switcher */}
+          <div className="flex border-b border-white/10 shrink-0">
+            <button
+              onClick={() => setRightPanel("properties")}
+              className={`flex-1 font-mono text-[10px] uppercase tracking-widest py-3 transition-colors ${
+                rightPanel === "properties"
+                  ? "text-white bg-white/5 border-b border-[#ccff00]"
+                  : "text-white/40 hover:text-white/60"
+              }`}
+            >
+              Properties
+            </button>
+            <button
+              onClick={() => setRightPanel("triggers")}
+              className={`flex-1 font-mono text-[10px] uppercase tracking-widest py-3 transition-colors ${
+                rightPanel === "triggers"
+                  ? "text-white bg-white/5 border-b border-[#ccff00]"
+                  : "text-white/40 hover:text-white/60"
+              }`}
+            >
+              Triggers
+            </button>
+          </div>
+
+          {/* Panel content */}
+          <div className="flex-1 overflow-y-auto">
+            {rightPanel === "properties" ? (
+              <PropertiesPanel
+                object={selectedObject}
+                onUpdate={(updates) => selectedObjectId && updateObject(selectedObjectId, updates)}
+                onDelete={() => selectedObjectId && deleteObject(selectedObjectId)}
+              />
+            ) : (
+              <TriggerBuilder
+                room={room}
+                onAddTrigger={addTrigger}
+                onDeleteTrigger={deleteTrigger}
+              />
+            )}
+          </div>
         </aside>
       </div>
     </div>

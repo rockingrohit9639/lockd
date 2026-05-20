@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import type { Direction, Room, RoomObject } from "../shared/types";
 import { getObjectDef } from "../shared/objects";
 import { ObjectSprite, hasSprite } from "../shared/object-sprites";
@@ -10,6 +11,8 @@ interface BuilderCanvasProps {
   onUpdateObject: (id: string, updates: Partial<RoomObject>) => void;
 }
 
+const MOVE_STEP = 1;
+
 export function BuilderCanvas({
   room,
   currentView,
@@ -17,7 +20,50 @@ export function BuilderCanvas({
   onSelectObject,
   onUpdateObject,
 }: BuilderCanvasProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const visibleObjects = room.objects.filter((obj) => obj.view === currentView);
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (!selectedObjectId) return;
+      const obj = room.objects.find((o) => o.id === selectedObjectId);
+      if (!obj) return;
+
+      let dx = 0;
+      let dy = 0;
+
+      switch (e.key) {
+        case "ArrowLeft":
+          dx = -MOVE_STEP;
+          break;
+        case "ArrowRight":
+          dx = MOVE_STEP;
+          break;
+        case "ArrowUp":
+          dy = -MOVE_STEP;
+          break;
+        case "ArrowDown":
+          dy = MOVE_STEP;
+          break;
+        case "Delete":
+        case "Backspace":
+          return;
+        default:
+          return;
+      }
+
+      e.preventDefault();
+      onUpdateObject(selectedObjectId, {
+        position: {
+          x: Math.max(0, Math.min(90, obj.position.x + dx)),
+          y: Math.max(0, Math.min(85, obj.position.y + dy)),
+        },
+      });
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedObjectId, room.objects, onUpdateObject]);
 
   function handleCanvasClick(e: React.MouseEvent<HTMLDivElement>) {
     if (e.target === e.currentTarget) {
@@ -29,7 +75,8 @@ export function BuilderCanvas({
     e.stopPropagation();
     onSelectObject(obj.id);
 
-    const canvas = e.currentTarget.parentElement!;
+    const canvas = containerRef.current;
+    if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
     const startX = e.clientX;
     const startY = e.clientY;
@@ -59,6 +106,7 @@ export function BuilderCanvas({
   return (
     <div className="h-full flex items-center justify-center p-6 bg-[#080808]">
       <div
+        ref={containerRef}
         className="relative w-full max-w-3xl aspect-[16/10] border border-white/10 bg-gradient-to-b from-[#1a1a2e] to-[#16213e] overflow-hidden"
         onClick={handleCanvasClick}
       >
@@ -91,7 +139,7 @@ export function BuilderCanvas({
             <div
               key={obj.id}
               onMouseDown={(e) => handleObjectMouseDown(e, obj)}
-              className={`absolute cursor-move transition-shadow ${
+              className={`absolute cursor-move transition-shadow group ${
                 isSelected
                   ? "outline outline-2 outline-[#ccff00] shadow-[0_0_12px_rgba(204,255,0,0.3)]"
                   : "hover:outline hover:outline-1 hover:outline-white/30"
@@ -107,8 +155,7 @@ export function BuilderCanvas({
               {hasSprite(obj.type) && (
                 <ObjectSprite type={obj.type} width={obj.size.width} height={obj.size.height} />
               )}
-              {/* Object label */}
-              <span className="absolute -bottom-5 left-0 font-mono text-[9px] text-white/50 whitespace-nowrap">
+              <span className="absolute -bottom-5 left-0 font-mono text-[9px] text-white/50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
                 {obj.name}
               </span>
             </div>
