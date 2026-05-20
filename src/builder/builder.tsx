@@ -5,6 +5,7 @@ import { ObjectPalette } from "./object-palette";
 import { BuilderCanvas } from "./builder-canvas";
 import { PropertiesPanel } from "./properties-panel";
 import { TriggerBuilder } from "./trigger-builder";
+import { Game } from "../player/game";
 
 interface BuilderProps {
   onExit: () => void;
@@ -28,6 +29,7 @@ export function Builder({ onExit }: BuilderProps) {
   const [currentView, setCurrentView] = useState<Direction>("north");
   const [selectedObjectId, setSelectedObjectId] = useState<string | null>(null);
   const [rightPanel, setRightPanel] = useState<RightPanel>("properties");
+  const [previewing, setPreviewing] = useState(false);
 
   const selectedObject = room.objects.find((o) => o.id === selectedObjectId) ?? null;
 
@@ -61,6 +63,10 @@ export function Builder({ onExit }: BuilderProps) {
   }
 
   const views: Direction[] = ["north", "east", "south", "west"];
+
+  if (previewing) {
+    return <Game room={room} onExit={() => setPreviewing(false)} />;
+  }
 
   return (
     <div className="h-screen flex flex-col bg-[#0a0a0a] text-white overflow-hidden">
@@ -100,6 +106,14 @@ export function Builder({ onExit }: BuilderProps) {
         </div>
 
         <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            onClick={() => setPreviewing(true)}
+            disabled={room.objects.length === 0}
+            className="font-mono text-xs uppercase tracking-widest text-[#ccff00] hover:text-[#ccff00] hover:bg-[#ccff00]/10 rounded-none px-3 py-1 h-auto disabled:opacity-30"
+          >
+            ▶ Play
+          </Button>
           <span className="font-mono text-[10px] text-white/30 uppercase tracking-widest">
             {room.objects.length} objects · {room.triggers.length} triggers
           </span>
