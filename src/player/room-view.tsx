@@ -78,22 +78,36 @@ function RoomObjectView({ object, onClick }: RoomObjectViewProps) {
   const def = getObjectDef(object.type);
   const showSprite = hasSprite(object.type);
 
+  if (showSprite) {
+    return (
+      <div
+        onClick={onClick}
+        className="absolute [&_svg]:cursor-pointer [&_svg]:pointer-events-auto"
+        style={{
+          left: `${object.position.x}%`,
+          top: `${object.position.y}%`,
+          width: `${object.size.width}px`,
+          height: `${object.size.height}px`,
+          pointerEvents: "none",
+        }}
+      >
+        <ObjectSprite type={object.type} width={object.size.width} height={object.size.height} />
+      </div>
+    );
+  }
+
   return (
     <button
       onClick={onClick}
-      className="absolute cursor-pointer transition-opacity hover:opacity-90"
+      className="absolute cursor-pointer hover:opacity-90 transition-opacity"
       style={{
         left: `${object.position.x}%`,
         top: `${object.position.y}%`,
         width: `${object.size.width}px`,
         height: `${object.size.height}px`,
-        backgroundColor: showSprite ? "transparent" : (def?.color ?? "#666"),
+        backgroundColor: def?.color ?? "#666",
       }}
-    >
-      {showSprite && (
-        <ObjectSprite type={object.type} width={object.size.width} height={object.size.height} />
-      )}
-    </button>
+    />
   );
 }
 
