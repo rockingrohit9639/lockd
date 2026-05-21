@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "~/components/ui/button";
 import type { GameState, Room } from "../shared/types";
 import { handleClick, handleUseItemOn, initializeState } from "./interaction-engine";
 import { Inventory } from "./inventory";

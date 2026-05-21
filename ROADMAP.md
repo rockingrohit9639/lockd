@@ -6,11 +6,17 @@ A searchable library of assets that users can upload and use in their rooms.
 
 ### How it works
 
-- Users upload custom assets (sprites, images) to the library
+- Users upload custom assets (sprites, images, memes) to the library
 - Each asset can be **private** (only visible to the uploader) or **public** (searchable by everyone)
 - In the builder, press **⌘+K** to open a command palette that searches the library
 - Select an asset from results to place it on the canvas
 - The current built-in object palette remains as defaults; the library extends it
+
+### Asset types
+
+- **Objects** — sprites/images to place in rooms (furniture, props, custom art)
+- **Memes** — gifs, images, short videos to use as trigger actions (replaces the hardcoded meme catalog)
+- **Backgrounds** — wall/floor textures for room customization
 
 ### UX
 

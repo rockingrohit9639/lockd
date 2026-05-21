@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "~/components/ui/button";
 import type { Direction, Room, RoomObject, Trigger } from "../shared/types";
 import { ObjectPalette } from "./object-palette";
 import { BuilderCanvas } from "./builder-canvas";

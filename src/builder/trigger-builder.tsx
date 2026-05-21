@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "~/components/ui/button";
 import type { Action, Condition, Room, Trigger, TriggerEvent, ActionType } from "../shared/types";
 
 interface TriggerBuilderProps {
