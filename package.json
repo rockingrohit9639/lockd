@@ -7,9 +7,12 @@
     "dev": "vite dev",
     "build": "vite build && tsc --noEmit",
     "preview": "vite preview",
-    "start": "node .output/server/index.mjs"
+    "start": "node .output/server/index.mjs",
+    "check": "biome check --write",
+    "lint": "biome lint"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.15",
     "@types/node": "^25.9.1",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",

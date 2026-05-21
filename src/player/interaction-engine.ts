@@ -1,4 +1,10 @@
-import type { Action, Condition, GameState, Room, Trigger } from "../shared/types";
+import type {
+  Action,
+  Condition,
+  GameState,
+  Room,
+  Trigger,
+} from "../shared/types";
 
 export function createInitialState(): GameState {
   return {
@@ -27,9 +33,13 @@ export function initializeState(room: Room): GameState {
 function checkCondition(condition: Condition, state: GameState): boolean {
   switch (condition.type) {
     case "has_item":
-      return condition.itemId ? state.inventory.includes(condition.itemId) : false;
+      return condition.itemId
+        ? state.inventory.includes(condition.itemId)
+        : false;
     case "not_has_item":
-      return condition.itemId ? !state.inventory.includes(condition.itemId) : true;
+      return condition.itemId
+        ? !state.inventory.includes(condition.itemId)
+        : true;
     case "flag_set":
       return condition.flag ? state.flags.has(condition.flag) : false;
     case "flag_not_set":
@@ -37,7 +47,10 @@ function checkCondition(condition: Condition, state: GameState): boolean {
   }
 }
 
-function checkAllConditions(conditions: Condition[], state: GameState): boolean {
+function checkAllConditions(
+  conditions: Condition[],
+  state: GameState,
+): boolean {
   return conditions.every((c) => checkCondition(c, state));
 }
 
@@ -106,7 +119,7 @@ function applyAction(action: Action, state: GameState): GameState {
 export function handleClick(
   objectId: string,
   room: Room,
-  state: GameState
+  state: GameState,
 ): GameState {
   const triggers = findTriggers(room, "click", objectId);
   return executeTriggers(triggers, state);
@@ -116,20 +129,20 @@ export function handleUseItemOn(
   itemId: string,
   targetId: string,
   room: Room,
-  state: GameState
+  state: GameState,
 ): GameState {
   const triggers = room.triggers.filter(
     (t) =>
       t.event === "use_item_on" &&
       t.sourceId === targetId &&
-      t.itemId === itemId
+      t.itemId === itemId,
   );
   return executeTriggers(triggers, state);
 }
 
 function findTriggers(room: Room, event: string, sourceId: string): Trigger[] {
   return room.triggers.filter(
-    (t) => t.event === event && t.sourceId === sourceId
+    (t) => t.event === event && t.sourceId === sourceId,
   );
 }
 

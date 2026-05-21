@@ -1,24 +1,34 @@
-import type { Direction, RoomObject } from "../shared/types";
+import { hasSprite, ObjectSprite } from "../shared/object-sprites";
 import { OBJECT_CATALOG, type ObjectDefinition } from "../shared/objects";
-import { ObjectSprite, hasSprite } from "../shared/object-sprites";
+import type { Direction, RoomObject } from "../shared/types";
 
 interface ObjectPaletteProps {
   currentView: Direction;
   onAddObject: (obj: RoomObject) => void;
 }
 
-const CATEGORIES = ["furniture", "container", "key-lock", "clue", "decoration", "special"] as const;
+const CATEGORIES = [
+  "furniture",
+  "container",
+  "key-lock",
+  "clue",
+  "decoration",
+  "special",
+] as const;
 
 const CATEGORY_LABELS: Record<string, string> = {
-  "furniture": "Furniture",
-  "container": "Containers",
+  furniture: "Furniture",
+  container: "Containers",
   "key-lock": "Keys & Locks",
-  "clue": "Clues",
-  "decoration": "Decoration",
-  "special": "Special",
+  clue: "Clues",
+  decoration: "Decoration",
+  special: "Special",
 };
 
-export function ObjectPalette({ currentView, onAddObject }: ObjectPaletteProps) {
+export function ObjectPalette({
+  currentView,
+  onAddObject,
+}: ObjectPaletteProps) {
   function handleAdd(def: ObjectDefinition) {
     const obj: RoomObject = {
       id: crypto.randomUUID(),

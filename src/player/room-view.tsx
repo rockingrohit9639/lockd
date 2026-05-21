@@ -1,6 +1,6 @@
-import type { Direction, GameState, Room, RoomObject } from "../shared/types";
+import { hasSprite, ObjectSprite } from "../shared/object-sprites";
 import { getObjectDef } from "../shared/objects";
-import { ObjectSprite, hasSprite } from "../shared/object-sprites";
+import type { Direction, GameState, Room, RoomObject } from "../shared/types";
 
 interface RoomViewProps {
   room: Room;
@@ -24,7 +24,7 @@ const PREV_VIEW: Record<Direction, Direction> = {
 
 export function RoomView({ room, state, onClickObject }: RoomViewProps) {
   const visibleObjects = room.objects.filter(
-    (obj) => obj.view === state.currentView && !state.hiddenObjects.has(obj.id)
+    (obj) => obj.view === state.currentView && !state.hiddenObjects.has(obj.id),
   );
 
   return (
@@ -33,7 +33,8 @@ export function RoomView({ room, state, onClickObject }: RoomViewProps) {
       <div
         className="absolute inset-0"
         style={{
-          background: "#1a1a1a url('https://images.unsplash.com/photo-1531685250784-7569952593d2?w=1200&q=80&fit=crop') center/cover",
+          background:
+            "#1a1a1a url('https://images.unsplash.com/photo-1531685250784-7569952593d2?w=1200&q=80&fit=crop') center/cover",
         }}
       />
       <div className="absolute inset-0 bg-black/40" />
@@ -42,7 +43,8 @@ export function RoomView({ room, state, onClickObject }: RoomViewProps) {
       <div
         className="absolute bottom-0 left-0 right-0 h-1/4 border-t border-white/[0.06]"
         style={{
-          background: "#111 url('https://images.unsplash.com/photo-1573869908170-64b53a60d8da?w=1200&q=80&fit=crop') center/cover",
+          background:
+            "#111 url('https://images.unsplash.com/photo-1573869908170-64b53a60d8da?w=1200&q=80&fit=crop') center/cover",
         }}
       >
         <div className="absolute inset-0 bg-black/50" />
@@ -63,7 +65,11 @@ export function RoomView({ room, state, onClickObject }: RoomViewProps) {
 
       {/* Objects */}
       {visibleObjects.map((obj) => (
-        <RoomObjectView key={obj.id} object={obj} onClick={() => onClickObject(obj.id)} />
+        <RoomObjectView
+          key={obj.id}
+          object={obj}
+          onClick={() => onClickObject(obj.id)}
+        />
       ))}
     </div>
   );
@@ -91,7 +97,11 @@ function RoomObjectView({ object, onClick }: RoomObjectViewProps) {
           pointerEvents: "none",
         }}
       >
-        <ObjectSprite type={object.type} width={object.size.width} height={object.size.height} />
+        <ObjectSprite
+          type={object.type}
+          width={object.size.width}
+          height={object.size.height}
+        />
       </div>
     );
   }

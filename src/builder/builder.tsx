@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "~/components/ui/button";
+import { Game } from "../player/game";
 import type { Direction, Room, RoomObject, Trigger } from "../shared/types";
-import { ObjectPalette } from "./object-palette";
+import { downloadRoom, importRoom, saveRoom } from "../storage/room-storage";
 import { BuilderCanvas } from "./builder-canvas";
+import { ObjectPalette } from "./object-palette";
 import { PropertiesPanel } from "./properties-panel";
 import { TriggerBuilder } from "./trigger-builder";
-import { Game } from "../player/game";
-import { downloadRoom, importRoom, saveRoom } from "../storage/room-storage";
 
 interface BuilderProps {
   room?: Room;
@@ -55,24 +55,28 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
     fileInputRef.current?.click();
   }, []);
 
-  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const imported = importRoom(reader.result as string);
-        setRoom(imported);
-        setSelectedObjectId(null);
-      } catch {
-        alert("Invalid room file");
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = "";
-  }, []);
+  const handleFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const imported = importRoom(reader.result as string);
+          setRoom(imported);
+          setSelectedObjectId(null);
+        } catch {
+          alert("Invalid room file");
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = "";
+    },
+    [],
+  );
 
-  const selectedObject = room.objects.find((o) => o.id === selectedObjectId) ?? null;
+  const selectedObject =
+    room.objects.find((o) => o.id === selectedObjectId) ?? null;
 
   function addObject(obj: RoomObject) {
     setRoom((r) => ({ ...r, objects: [...r.objects, obj] }));
@@ -236,8 +240,12 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
             {rightPanel === "properties" ? (
               <PropertiesPanel
                 object={selectedObject}
-                onUpdate={(updates) => selectedObjectId && updateObject(selectedObjectId, updates)}
-                onDelete={() => selectedObjectId && deleteObject(selectedObjectId)}
+                onUpdate={(updates) =>
+                  selectedObjectId && updateObject(selectedObjectId, updates)
+                }
+                onDelete={() =>
+                  selectedObjectId && deleteObject(selectedObjectId)
+                }
               />
             ) : (
               <TriggerBuilder

@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
 import type { GameState, Room } from "../shared/types";
-import { handleClick, handleUseItemOn, initializeState } from "./interaction-engine";
+import {
+  handleClick,
+  handleUseItemOn,
+  initializeState,
+} from "./interaction-engine";
 import { Inventory } from "./inventory";
 import { MemePlayer } from "./meme-player";
 import { NEXT_VIEW, PREV_VIEW, RoomView } from "./room-view";
@@ -28,7 +32,7 @@ export function Game({ room, onExit }: GameProps) {
       }
       setState(newState);
     },
-    [room, state, selectedItem]
+    [room, state, selectedItem],
   );
 
   const dismissMeme = useCallback(() => {
@@ -39,15 +43,13 @@ export function Game({ room, onExit }: GameProps) {
     setState((s) => ({ ...s, activeMessage: null }));
   }, []);
 
-  const navigate = useCallback(
-    (dir: "left" | "right") => {
-      setState((s) => ({
-        ...s,
-        currentView: dir === "left" ? PREV_VIEW[s.currentView] : NEXT_VIEW[s.currentView],
-      }));
-    },
-    []
-  );
+  const navigate = useCallback((dir: "left" | "right") => {
+    setState((s) => ({
+      ...s,
+      currentView:
+        dir === "left" ? PREV_VIEW[s.currentView] : NEXT_VIEW[s.currentView],
+    }));
+  }, []);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -118,7 +120,9 @@ export function Game({ room, onExit }: GameProps) {
           onClick={dismissMessage}
         >
           <div className="border border-white/10 bg-[#0a0a0a] px-8 py-6 max-w-md text-center space-y-3">
-            <p className="font-mono text-sm text-white">{state.activeMessage}</p>
+            <p className="font-mono text-sm text-white">
+              {state.activeMessage}
+            </p>
             <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest">
               click to dismiss
             </p>

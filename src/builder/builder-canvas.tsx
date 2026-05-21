@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
-import type { Direction, Room, RoomObject } from "../shared/types";
+import { hasSprite, ObjectSprite } from "../shared/object-sprites";
 import { getObjectDef } from "../shared/objects";
-import { ObjectSprite, hasSprite } from "../shared/object-sprites";
+import type { Direction, Room, RoomObject } from "../shared/types";
 
 interface BuilderCanvasProps {
   room: Room;
@@ -138,7 +138,8 @@ export function BuilderCanvas({
         ref={containerRef}
         className="relative w-full max-w-3xl aspect-[16/10] border border-white/10 overflow-hidden"
         style={{
-          background: "#1a1a1a url('https://images.unsplash.com/photo-1531685250784-7569952593d2?w=1200&q=80&fit=crop') center/cover",
+          background:
+            "#1a1a1a url('https://images.unsplash.com/photo-1531685250784-7569952593d2?w=1200&q=80&fit=crop') center/cover",
         }}
         onClick={handleCanvasClick}
       >
@@ -149,7 +150,8 @@ export function BuilderCanvas({
         <div
           className="absolute bottom-0 left-0 right-0 h-1/4 border-t border-white/[0.06]"
           style={{
-            background: "#111 url('https://images.unsplash.com/photo-1573869908170-64b53a60d8da?w=1200&q=80&fit=crop') center/cover",
+            background:
+              "#111 url('https://images.unsplash.com/photo-1573869908170-64b53a60d8da?w=1200&q=80&fit=crop') center/cover",
           }}
         >
           <div className="absolute inset-0 bg-black/50" />
@@ -191,11 +193,17 @@ export function BuilderCanvas({
                 top: `${obj.position.y}%`,
                 width: `${obj.size.width}px`,
                 height: `${obj.size.height}px`,
-                backgroundColor: hasSprite(obj.type) ? "transparent" : (def?.color ?? "#666"),
+                backgroundColor: hasSprite(obj.type)
+                  ? "transparent"
+                  : (def?.color ?? "#666"),
               }}
             >
               {hasSprite(obj.type) && (
-                <ObjectSprite type={obj.type} width={obj.size.width} height={obj.size.height} />
+                <ObjectSprite
+                  type={obj.type}
+                  width={obj.size.width}
+                  height={obj.size.height}
+                />
               )}
               <span className="absolute -bottom-5 left-0 font-mono text-[9px] text-white/50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
                 {obj.name}

@@ -3,7 +3,8 @@ import type { Room } from "../shared/types";
 export const TEST_ROOM: Room = {
   id: "test-room-1",
   name: "The Meme Dungeon",
-  description: "You wake up in a mysterious room. Find the key and escape... if you can handle the memes.",
+  description:
+    "You wake up in a mysterious room. Find the key and escape... if you can handle the memes.",
   objects: [
     {
       id: "desk-1",
@@ -103,7 +104,11 @@ export const TEST_ROOM: Room = {
       conditions: [],
       actions: [
         { type: "add_to_inventory", targetId: "note-1" },
-        { type: "show_message", message: "The note reads: 'Look behind the painting, but beware... you might get distracted.'" },
+        {
+          type: "show_message",
+          message:
+            "The note reads: 'Look behind the painting, but beware... you might get distracted.'",
+        },
       ],
     },
     // Click painting -> rickroll + reveal key
@@ -125,7 +130,10 @@ export const TEST_ROOM: Room = {
       conditions: [],
       actions: [
         { type: "add_to_inventory", targetId: "key-1" },
-        { type: "show_message", message: "You found the Golden Key! Now what does it open..." },
+        {
+          type: "show_message",
+          message: "You found the Golden Key! Now what does it open...",
+        },
       ],
     },
     // Use key on safe -> open safe, reveal keycard, show meme
@@ -139,7 +147,10 @@ export const TEST_ROOM: Room = {
         { type: "remove_from_inventory", targetId: "key-1" },
         { type: "reveal", targetId: "keycard-1" },
         { type: "play_meme", memeId: "surprised-pikachu" },
-        { type: "show_message", message: "The safe clicks open! There's a keycard inside." },
+        {
+          type: "show_message",
+          message: "The safe clicks open! There's a keycard inside.",
+        },
       ],
     },
     // Click keycard -> pick it up
@@ -148,9 +159,7 @@ export const TEST_ROOM: Room = {
       event: "click",
       sourceId: "keycard-1",
       conditions: [],
-      actions: [
-        { type: "add_to_inventory", targetId: "keycard-1" },
-      ],
+      actions: [{ type: "add_to_inventory", targetId: "keycard-1" }],
     },
     // Use keycard on door -> win!
     {
@@ -159,10 +168,7 @@ export const TEST_ROOM: Room = {
       sourceId: "door-1",
       itemId: "keycard-1",
       conditions: [{ type: "has_item", itemId: "keycard-1" }],
-      actions: [
-        { type: "play_meme", memeId: "coffin-dance" },
-        { type: "win" },
-      ],
+      actions: [{ type: "play_meme", memeId: "coffin-dance" }, { type: "win" }],
     },
     // Click door without keycard -> fail meme
     {
@@ -172,7 +178,10 @@ export const TEST_ROOM: Room = {
       conditions: [{ type: "not_has_item", itemId: "keycard-1" }],
       actions: [
         { type: "play_meme", memeId: "you-died" },
-        { type: "show_message", message: "The door is locked. You need a keycard." },
+        {
+          type: "show_message",
+          message: "The door is locked. You need a keycard.",
+        },
       ],
     },
     // Click plant -> doge meme (red herring)
@@ -183,7 +192,10 @@ export const TEST_ROOM: Room = {
       conditions: [],
       actions: [
         { type: "play_meme", memeId: "doge" },
-        { type: "show_message", message: "Much plant. Very suspicious. Wow. (Nothing here though)" },
+        {
+          type: "show_message",
+          message: "Much plant. Very suspicious. Wow. (Nothing here though)",
+        },
       ],
     },
   ],

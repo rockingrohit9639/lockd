@@ -35,7 +35,11 @@ export function saveRoom(room: Room): void {
 
   const index = getRoomIndex();
   const existing = index.findIndex((r) => r.id === room.id);
-  const meta: RoomMeta = { id: room.id, name: room.name, updatedAt: Date.now() };
+  const meta: RoomMeta = {
+    id: room.id,
+    name: room.name,
+    updatedAt: Date.now(),
+  };
 
   if (existing >= 0) {
     index[existing] = meta;

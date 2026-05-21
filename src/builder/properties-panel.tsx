@@ -7,12 +7,18 @@ interface PropertiesPanelProps {
   onDelete: () => void;
 }
 
-export function PropertiesPanel({ object, onUpdate, onDelete }: PropertiesPanelProps) {
+export function PropertiesPanel({
+  object,
+  onUpdate,
+  onDelete,
+}: PropertiesPanelProps) {
   if (!object) {
     return (
       <div className="p-4 h-full flex items-center justify-center">
         <p className="font-mono text-xs text-white/20 uppercase tracking-widest text-center">
-          Select an object<br />to edit properties
+          Select an object
+          <br />
+          to edit properties
         </p>
       </div>
     );
@@ -58,7 +64,11 @@ export function PropertiesPanel({ object, onUpdate, onDelete }: PropertiesPanelP
             <input
               type="number"
               value={Math.round(object.position.x)}
-              onChange={(e) => onUpdate({ position: { ...object.position, x: Number(e.target.value) } })}
+              onChange={(e) =>
+                onUpdate({
+                  position: { ...object.position, x: Number(e.target.value) },
+                })
+              }
               className="w-full bg-white/5 border border-white/10 px-2 py-1.5 text-xs font-mono text-white outline-none focus:border-[#ccff00]"
             />
           </div>
@@ -67,7 +77,11 @@ export function PropertiesPanel({ object, onUpdate, onDelete }: PropertiesPanelP
             <input
               type="number"
               value={Math.round(object.position.y)}
-              onChange={(e) => onUpdate({ position: { ...object.position, y: Number(e.target.value) } })}
+              onChange={(e) =>
+                onUpdate({
+                  position: { ...object.position, y: Number(e.target.value) },
+                })
+              }
               className="w-full bg-white/5 border border-white/10 px-2 py-1.5 text-xs font-mono text-white outline-none focus:border-[#ccff00]"
             />
           </div>
@@ -85,7 +99,11 @@ export function PropertiesPanel({ object, onUpdate, onDelete }: PropertiesPanelP
             <input
               type="number"
               value={object.size.width}
-              onChange={(e) => onUpdate({ size: { ...object.size, width: Number(e.target.value) } })}
+              onChange={(e) =>
+                onUpdate({
+                  size: { ...object.size, width: Number(e.target.value) },
+                })
+              }
               className="w-full bg-white/5 border border-white/10 px-2 py-1.5 text-xs font-mono text-white outline-none focus:border-[#ccff00]"
             />
           </div>
@@ -94,7 +112,11 @@ export function PropertiesPanel({ object, onUpdate, onDelete }: PropertiesPanelP
             <input
               type="number"
               value={object.size.height}
-              onChange={(e) => onUpdate({ size: { ...object.size, height: Number(e.target.value) } })}
+              onChange={(e) =>
+                onUpdate({
+                  size: { ...object.size, height: Number(e.target.value) },
+                })
+              }
               className="w-full bg-white/5 border border-white/10 px-2 py-1.5 text-xs font-mono text-white outline-none focus:border-[#ccff00]"
             />
           </div>

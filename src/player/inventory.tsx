@@ -1,6 +1,6 @@
-import type { Room } from "../shared/types";
+import { hasSprite, ObjectSprite } from "../shared/object-sprites";
 import { getObjectDef } from "../shared/objects";
-import { ObjectSprite, hasSprite } from "../shared/object-sprites";
+import type { Room } from "../shared/types";
 
 interface InventoryProps {
   items: string[];
@@ -9,7 +9,12 @@ interface InventoryProps {
   onSelectItem: (id: string | null) => void;
 }
 
-export function Inventory({ items, room, selectedItem, onSelectItem }: InventoryProps) {
+export function Inventory({
+  items,
+  room,
+  selectedItem,
+  onSelectItem,
+}: InventoryProps) {
   return (
     <div className="h-full flex flex-col bg-[#0a0a0a] border-l border-white/10">
       <div className="px-4 py-3 border-b border-white/10">
@@ -49,7 +54,9 @@ export function Inventory({ items, room, selectedItem, onSelectItem }: Inventory
                   />
                 )}
               </div>
-              <span className={`font-mono text-xs ${isSelected ? "text-[#ccff00]" : "text-white/70"}`}>
+              <span
+                className={`font-mono text-xs ${isSelected ? "text-[#ccff00]" : "text-white/70"}`}
+              >
                 {obj?.name ?? "?"}
               </span>
             </button>
