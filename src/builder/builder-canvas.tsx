@@ -45,6 +45,12 @@ export function BuilderCanvas({
 
   const viewRef = useRef(view);
   viewRef.current = view;
+  const roomRef = useRef(room);
+  roomRef.current = room;
+  const selectedRef = useRef(selectedObjectId);
+  selectedRef.current = selectedObjectId;
+  const drawRectRef = useRef(drawRect);
+  drawRectRef.current = drawRect;
 
   // Convert screen coords to world coords
   const screenToWorld = useCallback(
@@ -59,7 +65,7 @@ export function BuilderCanvas({
     [view],
   );
 
-  // Render loop
+  // Render loop — uses refs to avoid teardown on state changes
   useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
@@ -74,6 +80,10 @@ export function BuilderCanvas({
 
     function draw() {
       const v = viewRef.current;
+      const currentRoom = roomRef.current;
+      const currentSelected = selectedRef.current;
+      const currentDrawRect = drawRectRef.current;
+
       ctx.clearRect(0, 0, canvas!.width, canvas!.height);
 
       ctx.save();
@@ -81,23 +91,23 @@ export function BuilderCanvas({
       ctx.scale(v.zoom, v.zoom);
 
       // Background
-      ctx.fillStyle = room.map.backgroundColor;
-      ctx.fillRect(0, 0, room.map.width, room.map.height);
+      ctx.fillStyle = currentRoom.map.backgroundColor;
+      ctx.fillRect(0, 0, currentRoom.map.width, currentRoom.map.height);
 
       // Grid
       ctx.strokeStyle = "rgba(0, 0, 0, 0.06)";
       ctx.lineWidth = 1 / v.zoom;
       const gridSize = 64;
-      for (let x = 0; x <= room.map.width; x += gridSize) {
+      for (let x = 0; x <= currentRoom.map.width; x += gridSize) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
-        ctx.lineTo(x, room.map.height);
+        ctx.lineTo(x, currentRoom.map.height);
         ctx.stroke();
       }
-      for (let y = 0; y <= room.map.height; y += gridSize) {
+      for (let y = 0; y <= currentRoom.map.height; y += gridSize) {
         ctx.beginPath();
         ctx.moveTo(0, y);
-        ctx.lineTo(room.map.width, y);
+        ctx.lineTo(currentRoom.map.width, y);
         ctx.stroke();
       }
 
@@ -105,13 +115,13 @@ export function BuilderCanvas({
       ctx.fillStyle = "rgba(156, 163, 175, 0.5)";
       ctx.strokeStyle = "rgba(107, 114, 128, 0.8)";
       ctx.lineWidth = 2 / v.zoom;
-      for (const zone of room.collisionZones) {
+      for (const zone of currentRoom.collisionZones) {
         ctx.fillRect(zone.bounds.x, zone.bounds.y, zone.bounds.width, zone.bounds.height);
         ctx.strokeRect(zone.bounds.x, zone.bounds.y, zone.bounds.width, zone.bounds.height);
       }
 
       // Objects
-      const sorted = [...room.objects].sort((a, b) => {
+      const sorted = [...currentRoom.objects].sort((a, b) => {
         if (a.zIndex !== b.zIndex) return a.zIndex - b.zIndex;
         return a.position.y + a.size.height - (b.position.y + b.size.height);
       });
@@ -129,7 +139,7 @@ export function BuilderCanvas({
         }
 
         // Selection highlight
-        if (obj.id === selectedObjectId) {
+        if (obj.id === currentSelected) {
           ctx.strokeStyle = "#2563eb";
           ctx.lineWidth = 2 / v.zoom;
           ctx.setLineDash([4 / v.zoom, 4 / v.zoom]);
@@ -143,7 +153,7 @@ export function BuilderCanvas({
         }
 
         // Interaction radius (subtle)
-        if (obj.id === selectedObjectId && obj.interactionRadius > 0) {
+        if (obj.id === currentSelected && obj.interactionRadius > 0) {
           ctx.strokeStyle = "rgba(37, 99, 235, 0.2)";
           ctx.lineWidth = 1 / v.zoom;
           ctx.setLineDash([4 / v.zoom, 4 / v.zoom]);
@@ -163,7 +173,7 @@ export function BuilderCanvas({
       }
 
       // Player spawn marker
-      const spawn = room.map.playerSpawn;
+      const spawn = currentRoom.map.playerSpawn;
       ctx.fillStyle = "#22c55e";
       ctx.beginPath();
       ctx.arc(spawn.x, spawn.y, 10 / v.zoom, 0, Math.PI * 2);
@@ -179,18 +189,18 @@ export function BuilderCanvas({
       ctx.textBaseline = "alphabetic";
 
       // Draw-in-progress collision rect
-      if (drawRect) {
+      if (currentDrawRect) {
         ctx.fillStyle = "rgba(239, 68, 68, 0.2)";
         ctx.strokeStyle = "rgba(239, 68, 68, 0.8)";
         ctx.lineWidth = 2 / v.zoom;
-        ctx.fillRect(drawRect.x, drawRect.y, drawRect.width, drawRect.height);
-        ctx.strokeRect(drawRect.x, drawRect.y, drawRect.width, drawRect.height);
+        ctx.fillRect(currentDrawRect.x, currentDrawRect.y, currentDrawRect.width, currentDrawRect.height);
+        ctx.strokeRect(currentDrawRect.x, currentDrawRect.y, currentDrawRect.width, currentDrawRect.height);
       }
 
       // World boundary
       ctx.strokeStyle = "rgba(0, 0, 0, 0.3)";
       ctx.lineWidth = 2 / v.zoom;
-      ctx.strokeRect(0, 0, room.map.width, room.map.height);
+      ctx.strokeRect(0, 0, currentRoom.map.width, currentRoom.map.height);
 
       ctx.restore();
 
@@ -211,7 +221,7 @@ export function BuilderCanvas({
       cancelAnimationFrame(animId);
       resizeObs.disconnect();
     };
-  }, [room, selectedObjectId, drawRect]);
+  }, []);
 
   // Center view on mount
   useEffect(() => {
