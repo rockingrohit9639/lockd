@@ -1,53 +1,417 @@
-import { useEffect, useRef } from "react";
-import { hasSprite, ObjectSprite } from "../shared/object-sprites";
-import { getObjectDef } from "../shared/objects";
-import type { Direction, Room, RoomObject } from "../shared/types";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { AABB, CollisionZone, Room, RoomObject, Vec2 } from "../shared/types";
+import { drawObjectSprite } from "../engine/object-sprites";
 
 interface BuilderCanvasProps {
   room: Room;
-  currentView: Direction;
   selectedObjectId: string | null;
+  tool: BuilderTool;
   onSelectObject: (id: string | null) => void;
   onUpdateObject: (id: string, updates: Partial<RoomObject>) => void;
+  onAddCollisionZone: (zone: CollisionZone) => void;
+  onUpdateSpawn: (pos: Vec2) => void;
 }
 
-const MOVE_STEP = 1;
+export type BuilderTool = "select" | "collision" | "spawn";
+
+interface ViewState {
+  offsetX: number;
+  offsetY: number;
+  zoom: number;
+}
 
 export function BuilderCanvas({
   room,
-  currentView,
   selectedObjectId,
+  tool,
   onSelectObject,
   onUpdateObject,
+  onAddCollisionZone,
+  onUpdateSpawn,
 }: BuilderCanvasProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const visibleObjects = room.objects.filter((obj) => obj.view === currentView);
+  const [view, setView] = useState<ViewState>({ offsetX: 0, offsetY: 0, zoom: 0.5 });
+  const [dragging, setDragging] = useState<{
+    type: "pan" | "move" | "resize" | "draw-collision";
+    startX: number;
+    startY: number;
+    startObjPos?: Vec2;
+    startObjSize?: { width: number; height: number };
+    objectId?: string;
+    drawStart?: Vec2;
+  } | null>(null);
+  const [drawRect, setDrawRect] = useState<AABB | null>(null);
 
+  const viewRef = useRef(view);
+  viewRef.current = view;
+
+  // Convert screen coords to world coords
+  const screenToWorld = useCallback(
+    (screenX: number, screenY: number): Vec2 => {
+      const canvas = canvasRef.current;
+      if (!canvas) return { x: 0, y: 0 };
+      const rect = canvas.getBoundingClientRect();
+      const x = (screenX - rect.left - view.offsetX) / view.zoom;
+      const y = (screenY - rect.top - view.offsetY) / view.zoom;
+      return { x, y };
+    },
+    [view],
+  );
+
+  // Render loop
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
+
+    const rect = container.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+
+    const ctx = canvas.getContext("2d")!;
+    let animId: number;
+
+    function draw() {
+      const v = viewRef.current;
+      ctx.clearRect(0, 0, canvas!.width, canvas!.height);
+
+      ctx.save();
+      ctx.translate(v.offsetX, v.offsetY);
+      ctx.scale(v.zoom, v.zoom);
+
+      // Background
+      ctx.fillStyle = room.map.backgroundColor;
+      ctx.fillRect(0, 0, room.map.width, room.map.height);
+
+      // Grid
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.06)";
+      ctx.lineWidth = 1 / v.zoom;
+      const gridSize = 64;
+      for (let x = 0; x <= room.map.width; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, room.map.height);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= room.map.height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(room.map.width, y);
+        ctx.stroke();
+      }
+
+      // Collision zones
+      ctx.fillStyle = "rgba(156, 163, 175, 0.5)";
+      ctx.strokeStyle = "rgba(107, 114, 128, 0.8)";
+      ctx.lineWidth = 2 / v.zoom;
+      for (const zone of room.collisionZones) {
+        ctx.fillRect(zone.bounds.x, zone.bounds.y, zone.bounds.width, zone.bounds.height);
+        ctx.strokeRect(zone.bounds.x, zone.bounds.y, zone.bounds.width, zone.bounds.height);
+      }
+
+      // Objects
+      const sorted = [...room.objects].sort((a, b) => {
+        if (a.zIndex !== b.zIndex) return a.zIndex - b.zIndex;
+        return a.position.y + a.size.height - (b.position.y + b.size.height);
+      });
+
+      for (const obj of sorted) {
+        const { x, y } = obj.position;
+        const w = obj.size.width;
+        const h = obj.size.height;
+
+        ctx.globalAlpha = obj.hidden ? 0.4 : 1;
+
+        if (!drawObjectSprite(ctx, obj.type, x, y, w, h)) {
+          ctx.fillStyle = "#5a5a5a";
+          ctx.fillRect(x, y, w, h);
+        }
+
+        // Selection highlight
+        if (obj.id === selectedObjectId) {
+          ctx.strokeStyle = "#2563eb";
+          ctx.lineWidth = 2 / v.zoom;
+          ctx.setLineDash([4 / v.zoom, 4 / v.zoom]);
+          ctx.strokeRect(x - 2, y - 2, w + 4, h + 4);
+          ctx.setLineDash([]);
+
+          // Resize handle
+          ctx.fillStyle = "#2563eb";
+          const handleSize = 8 / v.zoom;
+          ctx.fillRect(x + w - handleSize / 2, y + h - handleSize / 2, handleSize, handleSize);
+        }
+
+        // Interaction radius (subtle)
+        if (obj.id === selectedObjectId && obj.interactionRadius > 0) {
+          ctx.strokeStyle = "rgba(37, 99, 235, 0.2)";
+          ctx.lineWidth = 1 / v.zoom;
+          ctx.setLineDash([4 / v.zoom, 4 / v.zoom]);
+          ctx.beginPath();
+          ctx.arc(x + w / 2, y + h / 2, obj.interactionRadius, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        ctx.globalAlpha = 1;
+
+        // Label
+        ctx.fillStyle = "#333";
+        ctx.font = `${11 / v.zoom}px monospace`;
+        ctx.textAlign = "center";
+        ctx.fillText(obj.name, x + w / 2, y - 6 / v.zoom);
+      }
+
+      // Player spawn marker
+      const spawn = room.map.playerSpawn;
+      ctx.fillStyle = "#22c55e";
+      ctx.beginPath();
+      ctx.arc(spawn.x, spawn.y, 10 / v.zoom, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#166534";
+      ctx.lineWidth = 2 / v.zoom;
+      ctx.stroke();
+      ctx.fillStyle = "#fff";
+      ctx.font = `bold ${8 / v.zoom}px monospace`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("P", spawn.x, spawn.y);
+      ctx.textBaseline = "alphabetic";
+
+      // Draw-in-progress collision rect
+      if (drawRect) {
+        ctx.fillStyle = "rgba(239, 68, 68, 0.2)";
+        ctx.strokeStyle = "rgba(239, 68, 68, 0.8)";
+        ctx.lineWidth = 2 / v.zoom;
+        ctx.fillRect(drawRect.x, drawRect.y, drawRect.width, drawRect.height);
+        ctx.strokeRect(drawRect.x, drawRect.y, drawRect.width, drawRect.height);
+      }
+
+      // World boundary
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.3)";
+      ctx.lineWidth = 2 / v.zoom;
+      ctx.strokeRect(0, 0, room.map.width, room.map.height);
+
+      ctx.restore();
+
+      animId = requestAnimationFrame(draw);
+    }
+
+    draw();
+
+    const resizeObs = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        canvas.width = entry.contentRect.width;
+        canvas.height = entry.contentRect.height;
+      }
+    });
+    resizeObs.observe(container);
+
+    return () => {
+      cancelAnimationFrame(animId);
+      resizeObs.disconnect();
+    };
+  }, [room, selectedObjectId, drawRect]);
+
+  // Center view on mount
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    const zoom = Math.min(rect.width / room.map.width, rect.height / room.map.height) * 0.85;
+    setView({
+      zoom,
+      offsetX: (rect.width - room.map.width * zoom) / 2,
+      offsetY: (rect.height - room.map.height * zoom) / 2,
+    });
+  }, [room.map.width, room.map.height]);
+
+  // Mouse wheel zoom
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    function handleWheel(e: WheelEvent) {
+      e.preventDefault();
+      const rect = canvas!.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+      setView((v) => {
+        const newZoom = Math.max(0.1, Math.min(3, v.zoom * zoomFactor));
+        const scale = newZoom / v.zoom;
+        return {
+          zoom: newZoom,
+          offsetX: mouseX - (mouseX - v.offsetX) * scale,
+          offsetY: mouseY - (mouseY - v.offsetY) * scale,
+        };
+      });
+    }
+
+    canvas.addEventListener("wheel", handleWheel, { passive: false });
+    return () => canvas.removeEventListener("wheel", handleWheel);
+  }, []);
+
+  function findObjectAt(worldPos: Vec2): RoomObject | null {
+    // Search in reverse (top objects first)
+    for (let i = room.objects.length - 1; i >= 0; i--) {
+      const obj = room.objects[i];
+      if (
+        worldPos.x >= obj.position.x &&
+        worldPos.x <= obj.position.x + obj.size.width &&
+        worldPos.y >= obj.position.y &&
+        worldPos.y <= obj.position.y + obj.size.height
+      ) {
+        return obj;
+      }
+    }
+    return null;
+  }
+
+  function isOnResizeHandle(worldPos: Vec2): boolean {
+    if (!selectedObjectId) return false;
+    const obj = room.objects.find((o) => o.id === selectedObjectId);
+    if (!obj) return false;
+    const handleSize = 12 / view.zoom;
+    const hx = obj.position.x + obj.size.width;
+    const hy = obj.position.y + obj.size.height;
+    return (
+      worldPos.x >= hx - handleSize &&
+      worldPos.x <= hx + handleSize &&
+      worldPos.y >= hy - handleSize &&
+      worldPos.y <= hy + handleSize
+    );
+  }
+
+  function handleMouseDown(e: React.MouseEvent) {
+    if (e.button === 1 || (e.button === 0 && e.altKey)) {
+      // Middle click or alt+click: pan
+      setDragging({ type: "pan", startX: e.clientX - view.offsetX, startY: e.clientY - view.offsetY });
+      return;
+    }
+
+    if (e.button !== 0) return;
+
+    const worldPos = screenToWorld(e.clientX, e.clientY);
+
+    if (tool === "spawn") {
+      onUpdateSpawn(worldPos);
+      return;
+    }
+
+    if (tool === "collision") {
+      setDragging({
+        type: "draw-collision",
+        startX: e.clientX,
+        startY: e.clientY,
+        drawStart: worldPos,
+      });
+      return;
+    }
+
+    // Select tool
+    if (isOnResizeHandle(worldPos)) {
+      const obj = room.objects.find((o) => o.id === selectedObjectId)!;
+      setDragging({
+        type: "resize",
+        startX: e.clientX,
+        startY: e.clientY,
+        startObjSize: { ...obj.size },
+        objectId: obj.id,
+      });
+      return;
+    }
+
+    const clickedObj = findObjectAt(worldPos);
+    if (clickedObj) {
+      onSelectObject(clickedObj.id);
+      setDragging({
+        type: "move",
+        startX: e.clientX,
+        startY: e.clientY,
+        startObjPos: { ...clickedObj.position },
+        objectId: clickedObj.id,
+      });
+    } else {
+      onSelectObject(null);
+      // Start panning
+      setDragging({ type: "pan", startX: e.clientX - view.offsetX, startY: e.clientY - view.offsetY });
+    }
+  }
+
+  function handleMouseMove(e: React.MouseEvent) {
+    if (!dragging) return;
+
+    if (dragging.type === "pan") {
+      setView((v) => ({
+        ...v,
+        offsetX: e.clientX - dragging.startX,
+        offsetY: e.clientY - dragging.startY,
+      }));
+    } else if (dragging.type === "move" && dragging.objectId && dragging.startObjPos) {
+      const dx = (e.clientX - dragging.startX) / view.zoom;
+      const dy = (e.clientY - dragging.startY) / view.zoom;
+      onUpdateObject(dragging.objectId, {
+        position: {
+          x: Math.round(Math.max(0, dragging.startObjPos.x + dx)),
+          y: Math.round(Math.max(0, dragging.startObjPos.y + dy)),
+        },
+      });
+    } else if (dragging.type === "resize" && dragging.objectId && dragging.startObjSize) {
+      const dx = (e.clientX - dragging.startX) / view.zoom;
+      const dy = (e.clientY - dragging.startY) / view.zoom;
+      onUpdateObject(dragging.objectId, {
+        size: {
+          width: Math.max(16, Math.round(dragging.startObjSize.width + dx)),
+          height: Math.max(16, Math.round(dragging.startObjSize.height + dy)),
+        },
+      });
+    } else if (dragging.type === "draw-collision" && dragging.drawStart) {
+      const currentWorld = screenToWorld(e.clientX, e.clientY);
+      const x = Math.min(dragging.drawStart.x, currentWorld.x);
+      const y = Math.min(dragging.drawStart.y, currentWorld.y);
+      const width = Math.abs(currentWorld.x - dragging.drawStart.x);
+      const height = Math.abs(currentWorld.y - dragging.drawStart.y);
+      setDrawRect({ x: Math.round(x), y: Math.round(y), width: Math.round(width), height: Math.round(height) });
+    }
+  }
+
+  function handleMouseUp() {
+    if (dragging?.type === "draw-collision" && drawRect && drawRect.width > 8 && drawRect.height > 8) {
+      onAddCollisionZone({
+        id: `zone-${crypto.randomUUID().slice(0, 8)}`,
+        bounds: drawRect,
+      });
+    }
+    setDragging(null);
+    setDrawRect(null);
+  }
+
+  // Keyboard: delete selected, arrow keys nudge
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (!selectedObjectId) return;
       const obj = room.objects.find((o) => o.id === selectedObjectId);
       if (!obj) return;
 
+      const step = e.shiftKey ? 10 : 1;
       let dx = 0;
       let dy = 0;
 
       switch (e.key) {
         case "ArrowLeft":
-          dx = -MOVE_STEP;
+          dx = -step;
           break;
         case "ArrowRight":
-          dx = MOVE_STEP;
+          dx = step;
           break;
         case "ArrowUp":
-          dy = -MOVE_STEP;
+          dy = -step;
           break;
         case "ArrowDown":
-          dy = MOVE_STEP;
+          dy = step;
           break;
-        case "Delete":
-        case "Backspace":
-          return;
         default:
           return;
       }
@@ -55,8 +419,8 @@ export function BuilderCanvas({
       e.preventDefault();
       onUpdateObject(selectedObjectId, {
         position: {
-          x: Math.max(0, Math.min(90, obj.position.x + dx)),
-          y: Math.max(0, Math.min(85, obj.position.y + dy)),
+          x: Math.max(0, obj.position.x + dx),
+          y: Math.max(0, obj.position.y + dy),
         },
       });
     }
@@ -65,168 +429,20 @@ export function BuilderCanvas({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedObjectId, room.objects, onUpdateObject]);
 
-  function handleCanvasClick(e: React.MouseEvent<HTMLDivElement>) {
-    if (e.target === e.currentTarget) {
-      onSelectObject(null);
-    }
-  }
-
-  function handleObjectMouseDown(e: React.MouseEvent, obj: RoomObject) {
-    e.stopPropagation();
-    onSelectObject(obj.id);
-
-    const canvas = containerRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const startPosX = obj.position.x;
-    const startPosY = obj.position.y;
-
-    function onMouseMove(me: MouseEvent) {
-      const dx = ((me.clientX - startX) / rect.width) * 100;
-      const dy = ((me.clientY - startY) / rect.height) * 100;
-      onUpdateObject(obj.id, {
-        position: {
-          x: Math.max(0, Math.min(90, startPosX + dx)),
-          y: Math.max(0, Math.min(85, startPosY + dy)),
-        },
-      });
-    }
-
-    function onMouseUp() {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
-    }
-
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
-  }
-
-  function handleResizeMouseDown(e: React.MouseEvent, obj: RoomObject) {
-    e.stopPropagation();
-    e.preventDefault();
-
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const startW = obj.size.width;
-    const startH = obj.size.height;
-
-    function onMouseMove(me: MouseEvent) {
-      const dx = me.clientX - startX;
-      const dy = me.clientY - startY;
-      onUpdateObject(obj.id, {
-        size: {
-          width: Math.max(20, startW + dx),
-          height: Math.max(20, startH + dy),
-        },
-      });
-    }
-
-    function onMouseUp() {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
-    }
-
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
-  }
-
   return (
-    <div className="h-full flex items-center justify-center p-6 bg-muted">
-      <div
-        ref={containerRef}
-        className="relative w-full max-w-3xl aspect-[16/10] border border-border overflow-hidden"
-        style={{
-          background:
-            "var(--background) url('https://images.unsplash.com/photo-1531685250784-7569952593d2?w=1200&q=80&fit=crop') center/cover",
-        }}
-        onClick={handleCanvasClick}
-      >
-        {/* Darkening overlay */}
-        <div className="absolute inset-0 bg-black/40" />
-
-        {/* Floor */}
-        <div
-          className="absolute bottom-0 left-0 right-0 h-1/4 border-t border-border/30"
-          style={{
-            background:
-              "#111 url('https://images.unsplash.com/photo-1573869908170-64b53a60d8da?w=1200&q=80&fit=crop') center/cover",
-          }}
-        >
-          <div className="absolute inset-0 bg-black/50" />
-        </div>
-
-        {/* Grid overlay */}
-        <div
-          className="absolute inset-0 pointer-events-none opacity-[0.04]"
-          style={{
-            backgroundImage: `
-              linear-gradient(to right, white 1px, transparent 1px),
-              linear-gradient(to bottom, white 1px, transparent 1px)
-            `,
-            backgroundSize: "10% 10%",
-          }}
-        />
-
-        {/* Wall label */}
-        <div className="absolute top-3 left-3 font-mono text-[10px] text-muted-foreground/70 uppercase tracking-widest">
-          {currentView} wall
-        </div>
-
-        {/* Objects */}
-        {visibleObjects.map((obj) => {
-          const def = getObjectDef(obj.type);
-          const isSelected = obj.id === selectedObjectId;
-
-          return (
-            <div
-              key={obj.id}
-              onMouseDown={(e) => handleObjectMouseDown(e, obj)}
-              className={`absolute cursor-move transition-shadow group ${
-                isSelected
-                  ? "outline outline-2 outline-primary shadow-[0_0_12px_rgba(245,245,245,0.3)]"
-                  : "hover:outline hover:outline-1 hover:outline-foreground/30"
-              } ${obj.hidden ? "opacity-40 border-dashed" : ""}`}
-              style={{
-                left: `${obj.position.x}%`,
-                top: `${obj.position.y}%`,
-                width: `${obj.size.width}px`,
-                height: `${obj.size.height}px`,
-                backgroundColor: hasSprite(obj.type)
-                  ? "transparent"
-                  : (def?.color ?? "#666"),
-              }}
-            >
-              {hasSprite(obj.type) && (
-                <ObjectSprite
-                  type={obj.type}
-                  width={obj.size.width}
-                  height={obj.size.height}
-                />
-              )}
-              <span className="absolute -bottom-5 left-0 font-mono text-[9px] text-muted-foreground whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-                {obj.name}
-              </span>
-              {isSelected && (
-                <div
-                  onMouseDown={(e) => handleResizeMouseDown(e, obj)}
-                  className="absolute -bottom-1 -right-1 w-3 h-3 bg-primary cursor-se-resize"
-                />
-              )}
-            </div>
-          );
-        })}
-
-        {/* Empty state */}
-        {visibleObjects.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <p className="font-mono text-xs text-muted-foreground/50 uppercase tracking-widest">
-              Click objects in the palette to add them
-            </p>
-          </div>
-        )}
-      </div>
+    <div
+      ref={containerRef}
+      className="w-full h-full overflow-hidden cursor-crosshair"
+      style={{ cursor: tool === "select" ? (dragging?.type === "pan" ? "grabbing" : "default") : "crosshair" }}
+    >
+      <canvas
+        ref={canvasRef}
+        className="block w-full h-full"
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+      />
     </div>
   );
 }

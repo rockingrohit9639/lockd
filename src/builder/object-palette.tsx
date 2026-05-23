@@ -1,9 +1,8 @@
 import { hasSprite, ObjectSprite } from "../shared/object-sprites";
 import { OBJECT_CATALOG, type ObjectDefinition } from "../shared/objects";
-import type { Direction, RoomObject } from "../shared/types";
+import type { RoomObject } from "../shared/types";
 
 interface ObjectPaletteProps {
-  currentView: Direction;
   onAddObject: (obj: RoomObject) => void;
 }
 
@@ -25,17 +24,13 @@ const CATEGORY_LABELS: Record<string, string> = {
   special: "Special",
 };
 
-export function ObjectPalette({
-  currentView,
-  onAddObject,
-}: ObjectPaletteProps) {
+export function ObjectPalette({ onAddObject }: ObjectPaletteProps) {
   function handleAdd(def: ObjectDefinition) {
     const obj: RoomObject = {
       id: crypto.randomUUID(),
       type: def.type,
       name: def.name,
-      view: currentView,
-      position: { x: 40, y: 40 },
+      position: { x: 0, y: 0 },
       size: { width: def.defaultSize.width, height: def.defaultSize.height },
       zIndex: 0,
       hidden: false,

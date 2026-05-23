@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Game } from "../player/game";
-import type { Direction, Room, RoomObject, Trigger } from "../shared/types";
+import type { CollisionZone, PlayerConfig, Room, RoomObject, Trigger, Vec2 } from "../shared/types";
 import { downloadRoom, importRoom, saveRoom } from "../storage/room-storage";
-import { BuilderCanvas } from "./builder-canvas";
+import { type BuilderTool, BuilderCanvas } from "./builder-canvas";
+import { MapSettings } from "./map-settings";
 import { ObjectPalette } from "./object-palette";
 import { PropertiesPanel } from "./properties-panel";
 import { TriggerBuilder } from "./trigger-builder";
@@ -13,7 +14,7 @@ interface BuilderProps {
   onExit: () => void;
 }
 
-type RightPanel = "properties" | "triggers";
+type RightPanel = "properties" | "triggers" | "map";
 
 function createEmptyRoom(): Room {
   return {
@@ -40,9 +41,9 @@ function createEmptyRoom(): Room {
 
 export function Builder({ room: initialRoom, onExit }: BuilderProps) {
   const [room, setRoom] = useState<Room>(initialRoom ?? createEmptyRoom);
-  const [currentView, setCurrentView] = useState<Direction>("north");
   const [selectedObjectId, setSelectedObjectId] = useState<string | null>(null);
   const [rightPanel, setRightPanel] = useState<RightPanel>("properties");
+  const [tool, setTool] = useState<BuilderTool>("select");
   const [previewing, setPreviewing] = useState(false);
   const [saved, setSaved] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -91,9 +92,15 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
     room.objects.find((o) => o.id === selectedObjectId) ?? null;
 
   function addObject(obj: RoomObject) {
-    setRoom((r) => ({ ...r, objects: [...r.objects, obj] }));
-    setSelectedObjectId(obj.id);
+    // Place at center of map
+    const centeredObj = {
+      ...obj,
+      position: { x: room.map.width / 2 - obj.size.width / 2, y: room.map.height / 2 - obj.size.height / 2 },
+    };
+    setRoom((r) => ({ ...r, objects: [...r.objects, centeredObj] }));
+    setSelectedObjectId(centeredObj.id);
     setRightPanel("properties");
+    setTool("select");
   }
 
   function updateObject(id: string, updates: Partial<RoomObject>) {
@@ -119,11 +126,42 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
     setRoom((r) => ({ ...r, triggers: r.triggers.filter((t) => t.id !== id) }));
   }
 
-  const views: Direction[] = ["north", "east", "south", "west"];
+  function addCollisionZone(zone: CollisionZone) {
+    setRoom((r) => ({ ...r, collisionZones: [...r.collisionZones, zone] }));
+  }
+
+  function deleteCollisionZone(id: string) {
+    setRoom((r) => ({
+      ...r,
+      collisionZones: r.collisionZones.filter((z) => z.id !== id),
+    }));
+  }
+
+  function updateSpawn(pos: Vec2) {
+    setRoom((r) => ({
+      ...r,
+      map: { ...r.map, playerSpawn: { x: Math.round(pos.x), y: Math.round(pos.y) } },
+    }));
+    setTool("select");
+  }
+
+  function updateMap(updates: Partial<Room["map"]>) {
+    setRoom((r) => ({ ...r, map: { ...r.map, ...updates } }));
+  }
+
+  function updatePlayer(updates: Partial<PlayerConfig>) {
+    setRoom((r) => ({ ...r, player: { ...r.player, ...updates } }));
+  }
 
   if (previewing) {
     return <Game room={room} onExit={() => setPreviewing(false)} />;
   }
+
+  const tools: { id: BuilderTool; label: string }[] = [
+    { id: "select", label: "Select" },
+    { id: "collision", label: "Collision" },
+    { id: "spawn", label: "Spawn" },
+  ];
 
   return (
     <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
@@ -146,18 +184,19 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
           />
         </div>
 
-        <div className="flex items-center gap-2">
-          {views.map((v) => (
+        {/* Tool selector */}
+        <div className="flex items-center gap-1">
+          {tools.map((t) => (
             <button
-              key={v}
-              onClick={() => setCurrentView(v)}
+              key={t.id}
+              onClick={() => setTool(t.id)}
               className={`font-mono text-xs uppercase tracking-widest px-3 py-1.5 transition-colors ${
-                currentView === v
+                tool === t.id
                   ? "bg-accent text-foreground"
                   : "text-muted-foreground hover:text-foreground/70"
               }`}
             >
-              {v[0]}
+              {t.label}
             </button>
           ))}
         </div>
@@ -189,8 +228,7 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
           <Button
             variant="ghost"
             onClick={() => setPreviewing(true)}
-            disabled={room.objects.length === 0}
-            className="font-mono text-xs uppercase tracking-widest text-primary hover:text-primary hover:bg-primary/10 rounded-none px-3 py-1 h-auto disabled:opacity-30"
+            className="font-mono text-xs uppercase tracking-widest text-primary hover:text-primary hover:bg-primary/10 rounded-none px-3 py-1 h-auto"
           >
             ▶ Play
           </Button>
@@ -204,24 +242,26 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
       <div className="flex-1 flex overflow-hidden">
         {/* Left: Object Palette */}
         <aside className="w-56 border-r border-border overflow-y-auto shrink-0">
-          <ObjectPalette currentView={currentView} onAddObject={addObject} />
+          <ObjectPalette onAddObject={addObject} />
         </aside>
 
         {/* Center: Canvas */}
-        <main className="flex-1 overflow-hidden">
+        <main className="flex-1 overflow-hidden bg-muted">
           <BuilderCanvas
             room={room}
-            currentView={currentView}
             selectedObjectId={selectedObjectId}
+            tool={tool}
             onSelectObject={(id) => {
               setSelectedObjectId(id);
               if (id) setRightPanel("properties");
             }}
             onUpdateObject={updateObject}
+            onAddCollisionZone={addCollisionZone}
+            onUpdateSpawn={updateSpawn}
           />
         </main>
 
-        {/* Right: Properties / Triggers */}
+        {/* Right: Properties / Triggers / Map */}
         <aside className="w-80 border-l border-border overflow-y-auto shrink-0 flex flex-col">
           {/* Tab switcher */}
           <div className="flex border-b border-border shrink-0">
@@ -245,6 +285,16 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
             >
               Triggers
             </button>
+            <button
+              onClick={() => setRightPanel("map")}
+              className={`flex-1 font-mono text-[10px] uppercase tracking-widest py-3 transition-colors ${
+                rightPanel === "map"
+                  ? "text-foreground bg-muted border-b border-primary"
+                  : "text-muted-foreground hover:text-muted-foreground"
+              }`}
+            >
+              Map
+            </button>
           </div>
 
           {/* Panel content */}
@@ -259,11 +309,20 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
                   selectedObjectId && deleteObject(selectedObjectId)
                 }
               />
-            ) : (
+            ) : rightPanel === "triggers" ? (
               <TriggerBuilder
                 room={room}
                 onAddTrigger={addTrigger}
                 onDeleteTrigger={deleteTrigger}
+              />
+            ) : (
+              <MapSettings
+                map={room.map}
+                player={room.player}
+                collisionZones={room.collisionZones}
+                onUpdateMap={updateMap}
+                onUpdatePlayer={updatePlayer}
+                onDeleteCollisionZone={deleteCollisionZone}
               />
             )}
           </div>

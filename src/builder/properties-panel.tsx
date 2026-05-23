@@ -131,6 +131,33 @@ export function PropertiesPanel({
         </div>
       </div>
 
+      {/* Interaction Radius */}
+      <div className="space-y-1">
+        <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground block">
+          Interaction Radius
+        </label>
+        <input
+          type="number"
+          value={object.interactionRadius}
+          onChange={(e) => onUpdate({ interactionRadius: Number(e.target.value) })}
+          step={5}
+          className="w-full bg-accent border border-border px-2 py-1.5 text-xs font-mono text-foreground outline-none focus:border-primary"
+        />
+      </div>
+
+      {/* Z-Index */}
+      <div className="space-y-1">
+        <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground block">
+          Z-Index
+        </label>
+        <input
+          type="number"
+          value={object.zIndex}
+          onChange={(e) => onUpdate({ zIndex: Number(e.target.value) })}
+          className="w-full bg-accent border border-border px-2 py-1.5 text-xs font-mono text-foreground outline-none focus:border-primary"
+        />
+      </div>
+
       {/* Toggles */}
       <div className="space-y-3">
         <label className="flex items-center gap-3 cursor-pointer group">
@@ -153,6 +180,23 @@ export function PropertiesPanel({
           />
           <span className="font-mono text-xs text-foreground/60 group-hover:text-foreground transition-colors">
             Collectible (goes to inventory)
+          </span>
+        </label>
+        <label className="flex items-center gap-3 cursor-pointer group">
+          <input
+            type="checkbox"
+            checked={object.collision !== null}
+            onChange={(e) =>
+              onUpdate({
+                collision: e.target.checked
+                  ? { x: object.position.x, y: object.position.y, width: object.size.width, height: object.size.height }
+                  : null,
+              })
+            }
+            className="w-4 h-4 accent-primary"
+          />
+          <span className="font-mono text-xs text-foreground/60 group-hover:text-foreground transition-colors">
+            Has collision box
           </span>
         </label>
       </div>
