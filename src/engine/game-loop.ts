@@ -7,6 +7,15 @@ import {
 import { type Camera, createCamera, updateCamera } from "./camera";
 import { clampToWorld, resolveMovement } from "./collision";
 import {
+  type EffectsState,
+  createEffectsState,
+  getShakeOffset,
+  renderParticles,
+  triggerFailShake,
+  triggerWinParticles,
+  updateEffects,
+} from "./effects";
+import {
   attachInputListeners,
   consumeInteract,
   createInputState,
@@ -24,6 +33,8 @@ export interface GameEngine {
   setState: (state: GameState) => void;
   resize: (width: number, height: number) => void;
   onInteract: (callback: (objectId: string) => void) => void;
+  triggerWin: () => void;
+  triggerFail: () => void;
 }
 
 export function createGameEngine(
@@ -36,6 +47,7 @@ export function createGameEngine(
   let camera: Camera = createCamera(canvas.width, canvas.height);
   let state: GameState = initialState;
   let animation: AnimationState = createAnimationState();
+  let effects: EffectsState = createEffectsState();
   let animFrameId: number | null = null;
   let lastTime = 0;
   let interactCallback: ((objectId: string) => void) | null = null;
@@ -139,10 +151,14 @@ export function createGameEngine(
   }
 
   function frame(time: number): void {
-    const dt = Math.min((time - lastTime) / 1000, 0.033); // cap at ~30fps worth of dt
+    const dt = Math.min((time - lastTime) / 1000, 0.033);
     lastTime = time;
 
     update(dt);
+    effects = updateEffects(effects, dt);
+
+    // Apply screen shake offset
+    const shakeOffset = getShakeOffset(effects.shake);
 
     const rc: RenderContext = {
       ctx,
@@ -158,7 +174,19 @@ export function createGameEngine(
       debug: false,
     };
 
+    // Apply shake to canvas
+    ctx.save();
+    ctx.translate(shakeOffset.x, shakeOffset.y);
     render(rc);
+    ctx.restore();
+
+    // Render particles in screen space (on top of everything)
+    if (effects.particles.length > 0) {
+      ctx.save();
+      ctx.translate(-camera.x + shakeOffset.x, -camera.y + shakeOffset.y);
+      renderParticles(ctx, effects.particles);
+      ctx.restore();
+    }
 
     animFrameId = requestAnimationFrame(frame);
   }
@@ -196,6 +224,12 @@ export function createGameEngine(
     },
     onInteract(callback: (objectId: string) => void) {
       interactCallback = callback;
+    },
+    triggerWin() {
+      effects = triggerWinParticles(effects, state.player.position.x, state.player.position.y);
+    },
+    triggerFail() {
+      effects = triggerFailShake(effects);
     },
   };
 }

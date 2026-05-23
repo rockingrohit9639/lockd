@@ -167,26 +167,40 @@ function drawInteractionPrompt(rc: RenderContext): void {
   if (!obj) return;
 
   const cx = obj.position.x + obj.size.width / 2;
-  const cy = obj.position.y - 20;
+  const floatOffset = Math.sin(Date.now() * 0.004) * 3;
+  const cy = obj.position.y - 16 + floatOffset;
 
-  // Background pill
-  ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
-  const text = "[E]";
-  ctx.font = "bold 12px monospace";
+  // Key indicator
+  ctx.font = "bold 11px monospace";
   ctx.textAlign = "center";
-  const metrics = ctx.measureText(text);
-  const padX = 8;
-  const padY = 4;
-  ctx.fillRect(
-    cx - metrics.width / 2 - padX,
-    cy - 10 - padY,
-    metrics.width + padX * 2,
-    14 + padY * 2,
-  );
+  const label = `E  ${obj.name}`;
+  const metrics = ctx.measureText(label);
+  const padX = 10;
+  const padY = 5;
+  const w = metrics.width + padX * 2;
+  const h = 14 + padY * 2;
+  const rx = cx - w / 2;
+  const ry = cy - h / 2;
 
-  // Text
+  // Background
+  ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+  ctx.fillRect(rx, ry, w, h);
+
+  // Key badge
+  ctx.fillStyle = "#2563eb";
+  ctx.fillRect(rx, ry, 22, h);
+
+  // Key letter
   ctx.fillStyle = "#fff";
-  ctx.fillText(text, cx, cy);
+  ctx.font = "bold 11px monospace";
+  ctx.fillText("E", rx + 11, cy + 4);
+
+  // Object name
+  ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+  ctx.font = "10px monospace";
+  ctx.textAlign = "left";
+  ctx.fillText(obj.name, rx + 28, cy + 4);
+  ctx.textAlign = "center";
 }
 
 function drawDebugCollision(rc: RenderContext): void {

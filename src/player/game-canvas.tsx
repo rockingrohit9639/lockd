@@ -38,6 +38,8 @@ export function GameCanvas({
       const newState = onInteractRef.current(objectId, currentState);
       if (newState) {
         engine.setState(newState);
+        if (newState.solved && !currentState.solved) engine.triggerWin();
+        if (newState.failed && !currentState.failed) engine.triggerFail();
       }
     });
 
