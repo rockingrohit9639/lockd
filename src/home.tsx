@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { Button } from "~/components/ui/button";
 
 interface HomeProps {
@@ -32,6 +33,18 @@ export function Home({ onPlay, onBuild }: HomeProps) {
           <span className="hover:text-white cursor-pointer transition-colors text-white/30">
             Browse
           </span>
+          <Link
+            to="/login"
+            className="hover:text-white cursor-pointer transition-colors"
+          >
+            Log in
+          </Link>
+          <Link
+            to="/signup"
+            className="ml-2 bg-[#ccff00] text-black px-4 py-2 font-bold hover:bg-[#b8e600] cursor-pointer transition-colors"
+          >
+            Sign up
+          </Link>
         </nav>
       </header>
 
