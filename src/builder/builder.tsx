@@ -20,6 +20,18 @@ function createEmptyRoom(): Room {
     id: crypto.randomUUID(),
     name: "Untitled Room",
     description: "",
+    map: {
+      width: 1600,
+      height: 1200,
+      backgroundColor: "#e8e8e8",
+      playerSpawn: { x: 800, y: 600 },
+    },
+    player: {
+      speed: 200,
+      size: { width: 28, height: 28 },
+      interactionReach: 20,
+    },
+    collisionZones: [],
     objects: [],
     triggers: [],
     winCondition: { type: "trigger", triggerId: "" },

@@ -1,14 +1,14 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Button } from "~/components/ui/button";
 import type { GameState, Room } from "../shared/types";
+import { GameCanvas } from "./game-canvas";
 import {
-  handleClick,
+  handleInteract,
   handleUseItemOn,
   initializeState,
 } from "./interaction-engine";
 import { Inventory } from "./inventory";
 import { MemePlayer } from "./meme-player";
-import { NEXT_VIEW, PREV_VIEW, RoomView } from "./room-view";
 
 interface GameProps {
   room: Room;
@@ -18,22 +18,29 @@ interface GameProps {
 export function Game({ room, onExit }: GameProps) {
   const [state, setState] = useState<GameState>(() => initializeState(room));
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
+  const selectedItemRef = useRef(selectedItem);
+  selectedItemRef.current = selectedItem;
 
-  const onClickObject = useCallback(
-    (objectId: string) => {
-      if (state.solved || state.failed) return;
+  const onInteract = useCallback(
+    (objectId: string, engineState: GameState): GameState | void => {
+      if (engineState.solved || engineState.failed) return;
 
       let newState: GameState;
-      if (selectedItem) {
-        newState = handleUseItemOn(selectedItem, objectId, room, state);
+      if (selectedItemRef.current) {
+        newState = handleUseItemOn(selectedItemRef.current, objectId, room, engineState);
         setSelectedItem(null);
       } else {
-        newState = handleClick(objectId, room, state);
+        newState = handleInteract(objectId, room, engineState);
       }
       setState(newState);
+      return newState;
     },
-    [room, state, selectedItem],
+    [room],
   );
+
+  const onStateChange = useCallback((newState: GameState) => {
+    setState(newState);
+  }, []);
 
   const dismissMeme = useCallback(() => {
     setState((s) => ({ ...s, activeMeme: null }));
@@ -42,23 +49,6 @@ export function Game({ room, onExit }: GameProps) {
   const dismissMessage = useCallback(() => {
     setState((s) => ({ ...s, activeMessage: null }));
   }, []);
-
-  const navigate = useCallback((dir: "left" | "right") => {
-    setState((s) => ({
-      ...s,
-      currentView:
-        dir === "left" ? PREV_VIEW[s.currentView] : NEXT_VIEW[s.currentView],
-    }));
-  }, []);
-
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "ArrowLeft" || e.key === "a") navigate("left");
-      if (e.key === "ArrowRight" || e.key === "d") navigate("right");
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [navigate]);
 
   return (
     <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
@@ -73,29 +63,20 @@ export function Game({ room, onExit }: GameProps) {
         </Button>
         <span className="font-mono text-sm font-bold">{room.name}</span>
         <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
-          {state.currentView}
+          WASD to move · E to interact
         </span>
       </header>
 
-      {/* Main: Room + Inventory sidebar */}
+      {/* Main: Canvas + Inventory sidebar */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Room — takes remaining width */}
+        {/* Game canvas */}
         <div className="flex-1 relative">
-          {/* Nav buttons */}
-          <button
-            onClick={() => navigate("left")}
-            className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-8 h-14 bg-muted hover:bg-accent flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors font-mono"
-          >
-            ‹
-          </button>
-          <button
-            onClick={() => navigate("right")}
-            className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-8 h-14 bg-muted hover:bg-accent flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors font-mono"
-          >
-            ›
-          </button>
-
-          <RoomView room={room} state={state} onClickObject={onClickObject} />
+          <GameCanvas
+            room={room}
+            initialState={state}
+            onStateChange={onStateChange}
+            onInteract={onInteract}
+          />
         </div>
 
         {/* Inventory sidebar */}
@@ -120,9 +101,7 @@ export function Game({ room, onExit }: GameProps) {
           onClick={dismissMessage}
         >
           <div className="border border-border bg-background px-8 py-6 max-w-md text-center space-y-3">
-            <p className="font-mono text-sm text-white">
-              {state.activeMessage}
-            </p>
+            <p className="font-mono text-sm">{state.activeMessage}</p>
             <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
               click to dismiss
             </p>
@@ -145,7 +124,9 @@ function WinScreen({ onExit }: { onExit: () => void }) {
         <h2 className="font-mono text-5xl font-bold text-primary uppercase tracking-widest">
           Escaped
         </h2>
-        <p className="font-mono text-sm text-muted-foreground">you made it out</p>
+        <p className="font-mono text-sm text-muted-foreground">
+          you made it out
+        </p>
         <Button
           onClick={onExit}
           className="bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest font-bold rounded-none hover:bg-primary/90 px-6 py-2"

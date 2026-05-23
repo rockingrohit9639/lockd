@@ -1,4 +1,60 @@
+// ─── Legacy (remove in Phase 4 builder rewrite) ───
+
 export type Direction = "north" | "east" | "south" | "west";
+
+// ─── Geometry Primitives ───
+
+export interface Vec2 {
+  x: number;
+  y: number;
+}
+
+export interface Size {
+  width: number;
+  height: number;
+}
+
+export interface AABB {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+// ─── Map ───
+
+export interface MapConfig {
+  width: number;
+  height: number;
+  backgroundColor: string;
+  backgroundUrl?: string;
+  playerSpawn: Vec2;
+}
+
+export interface CollisionZone {
+  id: string;
+  bounds: AABB;
+}
+
+// ─── Player ───
+
+export type FacingDirection = "up" | "down" | "left" | "right";
+
+export interface PlayerConfig {
+  speed: number;
+  size: Size;
+  interactionReach: number;
+  spriteSheetUrl?: string;
+}
+
+export interface PlayerState {
+  position: Vec2;
+  velocity: Vec2;
+  facing: FacingDirection;
+  isMoving: boolean;
+}
+
+// ─── Objects ───
 
 export type ObjectType =
   | "desk"
@@ -31,10 +87,30 @@ export type ObjectType =
   | "light-switch"
   | "hidden-panel";
 
+export interface RoomObject {
+  id: string;
+  type: ObjectType;
+  name: string;
+  position: Vec2;
+  size: Size;
+  zIndex: number;
+  hidden: boolean;
+  collectible: boolean;
+  collision: AABB | null;
+  interactionRadius: number;
+  spriteUrl?: string;
+  properties: Record<string, unknown>;
+  /** @deprecated Legacy field for old builder — remove in Phase 4 */
+  view?: Direction;
+}
+
+// ─── Triggers ───
+
 export type TriggerEvent =
-  | "click"
+  | "interact"
   | "use_item_on"
   | "combine"
+  | "enter_zone"
   | "timer_low"
   | "timer_expired";
 
@@ -49,28 +125,6 @@ export type ActionType =
   | "show_message"
   | "win"
   | "fail";
-
-export interface Position {
-  x: number;
-  y: number;
-}
-
-export interface Size {
-  width: number;
-  height: number;
-}
-
-export interface RoomObject {
-  id: string;
-  type: ObjectType;
-  name: string;
-  view: Direction;
-  position: Position;
-  size: Size;
-  hidden: boolean;
-  collectible: boolean;
-  properties: Record<string, unknown>;
-}
 
 export interface Condition {
   type: "has_item" | "not_has_item" | "flag_set" | "flag_not_set";
@@ -95,6 +149,8 @@ export interface Trigger {
   actions: Action[];
 }
 
+// ─── Room ───
+
 export interface WinCondition {
   type: "trigger";
   triggerId: string;
@@ -104,14 +160,19 @@ export interface Room {
   id: string;
   name: string;
   description: string;
+  map: MapConfig;
+  collisionZones: CollisionZone[];
   objects: RoomObject[];
   triggers: Trigger[];
   winCondition: WinCondition;
   timeLimit?: number;
+  player: PlayerConfig;
 }
 
+// ─── Game State ───
+
 export interface GameState {
-  currentView: Direction;
+  player: PlayerState;
   inventory: string[];
   flags: Set<string>;
   revealedObjects: Set<string>;
@@ -120,7 +181,10 @@ export interface GameState {
   failed: boolean;
   activeMessage: string | null;
   activeMeme: string | null;
+  nearbyObjectId: string | null;
 }
+
+// ─── Memes ───
 
 export interface MemeDefinition {
   id: string;

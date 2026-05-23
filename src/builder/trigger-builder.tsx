@@ -16,7 +16,7 @@ interface TriggerBuilderProps {
 }
 
 const EVENTS: { value: TriggerEvent; label: string }[] = [
-  { value: "click", label: "Click" },
+  { value: "interact", label: "Interact" },
   { value: "use_item_on", label: "Use item on" },
 ];
 
@@ -131,7 +131,9 @@ function TriggerCard({
           ×
         </button>
       </div>
-      <p className="font-mono text-[10px] text-muted-foreground">{actionSummary}</p>
+      <p className="font-mono text-[10px] text-muted-foreground">
+        {actionSummary}
+      </p>
     </div>
   );
 }
@@ -145,7 +147,7 @@ function NewTriggerForm({
   onSave: (t: Trigger) => void;
   onCancel: () => void;
 }) {
-  const [event, setEvent] = useState<TriggerEvent>("click");
+  const [event, setEvent] = useState<TriggerEvent>("interact");
   const [sourceId, setSourceId] = useState(room.objects[0]?.id ?? "");
   const [itemId, setItemId] = useState("");
   const [actions, setActions] = useState<Action[]>([]);

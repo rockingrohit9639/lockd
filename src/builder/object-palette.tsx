@@ -37,8 +37,11 @@ export function ObjectPalette({
       view: currentView,
       position: { x: 40, y: 40 },
       size: { width: def.defaultSize.width, height: def.defaultSize.height },
+      zIndex: 0,
       hidden: false,
       collectible: false,
+      collision: null,
+      interactionRadius: 50,
       properties: {},
     };
     onAddObject(obj);

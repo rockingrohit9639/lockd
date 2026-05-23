@@ -1,0 +1,73 @@
+import { useEffect, useRef } from "react";
+import { type GameEngine, createGameEngine } from "../engine/game-loop";
+import type { GameState, Room } from "../shared/types";
+
+interface GameCanvasProps {
+  room: Room;
+  initialState: GameState;
+  onStateChange: (state: GameState) => void;
+  onInteract: (objectId: string, engineState: GameState) => GameState | void;
+}
+
+export function GameCanvas({
+  room,
+  initialState,
+  onStateChange,
+  onInteract,
+}: GameCanvasProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const engineRef = useRef<GameEngine | null>(null);
+  const onInteractRef = useRef(onInteract);
+  onInteractRef.current = onInteract;
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
+
+    const rect = container.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+
+    const engine = createGameEngine(canvas, room, initialState);
+    engineRef.current = engine;
+
+    engine.onInteract((objectId) => {
+      const currentState = engine.getState();
+      const newState = onInteractRef.current(objectId, currentState);
+      if (newState) {
+        engine.setState(newState);
+      }
+    });
+
+    engine.start();
+
+    const syncInterval = setInterval(() => {
+      onStateChange(engine.getState());
+    }, 100);
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        canvas.width = width;
+        canvas.height = height;
+        engine.resize(width, height);
+      }
+    });
+    resizeObserver.observe(container);
+
+    return () => {
+      engine.stop();
+      resizeObserver.disconnect();
+      clearInterval(syncInterval);
+      engineRef.current = null;
+    };
+  }, [room]);
+
+  return (
+    <div ref={containerRef} className="w-full h-full">
+      <canvas ref={canvasRef} className="block w-full h-full" />
+    </div>
+  );
+}

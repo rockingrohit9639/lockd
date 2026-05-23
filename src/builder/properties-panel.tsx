@@ -60,7 +60,9 @@ export function PropertiesPanel({
         </label>
         <div className="grid grid-cols-2 gap-2">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[10px] text-muted-foreground/70">X</span>
+            <span className="font-mono text-[10px] text-muted-foreground/70">
+              X
+            </span>
             <input
               type="number"
               value={Math.round(object.position.x)}
@@ -73,7 +75,9 @@ export function PropertiesPanel({
             />
           </div>
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[10px] text-muted-foreground/70">Y</span>
+            <span className="font-mono text-[10px] text-muted-foreground/70">
+              Y
+            </span>
             <input
               type="number"
               value={Math.round(object.position.y)}
@@ -95,7 +99,9 @@ export function PropertiesPanel({
         </label>
         <div className="grid grid-cols-2 gap-2">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[10px] text-muted-foreground/70">W</span>
+            <span className="font-mono text-[10px] text-muted-foreground/70">
+              W
+            </span>
             <input
               type="number"
               value={object.size.width}
@@ -108,7 +114,9 @@ export function PropertiesPanel({
             />
           </div>
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[10px] text-muted-foreground/70">H</span>
+            <span className="font-mono text-[10px] text-muted-foreground/70">
+              H
+            </span>
             <input
               type="number"
               value={object.size.height}

@@ -6,28 +6,31 @@ import type {
   Trigger,
 } from "../shared/types";
 
-export function createInitialState(): GameState {
+export function initializeState(room: Room): GameState {
+  const hiddenObjects = new Set<string>();
+  for (const obj of room.objects) {
+    if (obj.hidden) {
+      hiddenObjects.add(obj.id);
+    }
+  }
+
   return {
-    currentView: "north",
+    player: {
+      position: { ...room.map.playerSpawn },
+      velocity: { x: 0, y: 0 },
+      facing: "down",
+      isMoving: false,
+    },
     inventory: [],
     flags: new Set(),
     revealedObjects: new Set(),
-    hiddenObjects: new Set(),
+    hiddenObjects,
     solved: false,
     failed: false,
     activeMessage: null,
     activeMeme: null,
+    nearbyObjectId: null,
   };
-}
-
-export function initializeState(room: Room): GameState {
-  const state = createInitialState();
-  for (const obj of room.objects) {
-    if (obj.hidden) {
-      state.hiddenObjects.add(obj.id);
-    }
-  }
-  return state;
 }
 
 function checkCondition(condition: Condition, state: GameState): boolean {
@@ -116,12 +119,12 @@ function applyAction(action: Action, state: GameState): GameState {
   return next;
 }
 
-export function handleClick(
+export function handleInteract(
   objectId: string,
   room: Room,
   state: GameState,
 ): GameState {
-  const triggers = findTriggers(room, "click", objectId);
+  const triggers = findTriggers(room, "interact", objectId);
   return executeTriggers(triggers, state);
 }
 
