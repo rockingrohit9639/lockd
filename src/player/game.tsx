@@ -61,18 +61,18 @@ export function Game({ room, onExit }: GameProps) {
   }, [navigate]);
 
   return (
-    <div className="h-screen flex flex-col bg-[#0a0a0a] text-white overflow-hidden">
+    <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
       {/* Header */}
-      <header className="border-b border-white/10 px-4 py-3 flex items-center justify-between shrink-0">
+      <header className="border-b border-border px-4 py-3 flex items-center justify-between shrink-0">
         <Button
           variant="ghost"
           onClick={onExit}
-          className="font-mono text-xs uppercase tracking-widest text-white/60 hover:text-white rounded-none px-3 py-1 h-auto"
+          className="font-mono text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground rounded-none px-3 py-1 h-auto"
         >
           ← Exit
         </Button>
         <span className="font-mono text-sm font-bold">{room.name}</span>
-        <span className="font-mono text-[10px] text-white/30 uppercase tracking-widest">
+        <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
           {state.currentView}
         </span>
       </header>
@@ -84,13 +84,13 @@ export function Game({ room, onExit }: GameProps) {
           {/* Nav buttons */}
           <button
             onClick={() => navigate("left")}
-            className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-8 h-14 bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-colors font-mono"
+            className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-8 h-14 bg-muted hover:bg-accent flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors font-mono"
           >
             ‹
           </button>
           <button
             onClick={() => navigate("right")}
-            className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-8 h-14 bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-colors font-mono"
+            className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-8 h-14 bg-muted hover:bg-accent flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors font-mono"
           >
             ›
           </button>
@@ -119,11 +119,11 @@ export function Game({ room, onExit }: GameProps) {
           className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 cursor-pointer backdrop-blur-sm"
           onClick={dismissMessage}
         >
-          <div className="border border-white/10 bg-[#0a0a0a] px-8 py-6 max-w-md text-center space-y-3">
+          <div className="border border-border bg-background px-8 py-6 max-w-md text-center space-y-3">
             <p className="font-mono text-sm text-white">
               {state.activeMessage}
             </p>
-            <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest">
+            <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
               click to dismiss
             </p>
           </div>
@@ -142,13 +142,13 @@ function WinScreen({ onExit }: { onExit: () => void }) {
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/80 backdrop-blur-sm">
       <div className="text-center space-y-6">
-        <h2 className="font-mono text-5xl font-bold text-[#ccff00] uppercase tracking-widest">
+        <h2 className="font-mono text-5xl font-bold text-primary uppercase tracking-widest">
           Escaped
         </h2>
-        <p className="font-mono text-sm text-white/50">you made it out</p>
+        <p className="font-mono text-sm text-muted-foreground">you made it out</p>
         <Button
           onClick={onExit}
-          className="bg-[#ccff00] text-black font-mono text-xs uppercase tracking-widest font-bold rounded-none hover:bg-[#b8e600] px-6 py-2"
+          className="bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest font-bold rounded-none hover:bg-primary/90 px-6 py-2"
         >
           Done
         </Button>
@@ -164,11 +164,11 @@ function FailScreen({ onExit }: { onExit: () => void }) {
         <h2 className="font-mono text-5xl font-bold text-red-500 uppercase tracking-widest">
           Failed
         </h2>
-        <p className="font-mono text-sm text-white/50">skill issue</p>
+        <p className="font-mono text-sm text-muted-foreground">skill issue</p>
         <Button
           variant="ghost"
           onClick={onExit}
-          className="font-mono text-xs uppercase tracking-widest text-white/60 hover:text-white rounded-none px-6 py-2 border border-white/10"
+          className="font-mono text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground rounded-none px-6 py-2 border border-border"
         >
           Exit
         </Button>

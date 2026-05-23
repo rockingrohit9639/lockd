@@ -23,17 +23,17 @@ export function MemePlayer({ memeId, onDismiss }: MemePlayerProps) {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 cursor-pointer backdrop-blur-md"
       onClick={onDismiss}
     >
-      <div className="border border-white/10 bg-[#0a0a0a] p-4 space-y-3">
+      <div className="border border-border bg-background p-4 space-y-3">
         <img
           src={meme.url}
           alt={meme.name}
           className="max-w-sm max-h-[60vh] mx-auto"
         />
         <div className="text-center space-y-1">
-          <p className="font-mono text-sm font-bold text-[#ccff00]">
+          <p className="font-mono text-sm font-bold text-primary">
             {meme.name}
           </p>
-          <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest">
+          <p className="font-mono text-[10px] text-muted-foreground/50 uppercase tracking-widest">
             click to dismiss
           </p>
         </div>

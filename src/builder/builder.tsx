@@ -114,23 +114,23 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-[#0a0a0a] text-white overflow-hidden">
+    <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
       {/* Top bar */}
-      <header className="border-b border-white/10 px-4 py-3 flex items-center justify-between shrink-0">
+      <header className="border-b border-border px-4 py-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
             onClick={onExit}
-            className="font-mono text-xs uppercase tracking-widest text-white/60 hover:text-white rounded-none px-3 py-1 h-auto"
+            className="font-mono text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground rounded-none px-3 py-1 h-auto"
           >
             ← Exit
           </Button>
-          <div className="h-4 w-px bg-white/10" />
+          <div className="h-4 w-px bg-accent" />
           <input
             type="text"
             value={room.name}
             onChange={(e) => setRoom((r) => ({ ...r, name: e.target.value }))}
-            className="bg-transparent font-mono text-sm font-bold border-none outline-none focus:text-[#ccff00] transition-colors"
+            className="bg-transparent font-mono text-sm font-bold border-none outline-none focus:text-primary transition-colors"
           />
         </div>
 
@@ -141,8 +141,8 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
               onClick={() => setCurrentView(v)}
               className={`font-mono text-xs uppercase tracking-widest px-3 py-1.5 transition-colors ${
                 currentView === v
-                  ? "bg-white/10 text-white"
-                  : "text-white/40 hover:text-white/70"
+                  ? "bg-accent text-foreground"
+                  : "text-muted-foreground hover:text-foreground/70"
               }`}
             >
               {v[0]}
@@ -154,7 +154,7 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
           <Button
             variant="ghost"
             onClick={handleImport}
-            className="font-mono text-[10px] uppercase tracking-widest text-white/40 hover:text-white rounded-none px-2 py-1 h-auto"
+            className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground rounded-none px-2 py-1 h-auto"
           >
             Import
           </Button>
@@ -162,27 +162,27 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
             variant="ghost"
             onClick={handleExport}
             disabled={room.objects.length === 0}
-            className="font-mono text-[10px] uppercase tracking-widest text-white/40 hover:text-white rounded-none px-2 py-1 h-auto disabled:opacity-30"
+            className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground rounded-none px-2 py-1 h-auto disabled:opacity-30"
           >
             Export
           </Button>
           <Button
             variant="ghost"
             onClick={handleSave}
-            className="font-mono text-[10px] uppercase tracking-widest text-white/40 hover:text-white rounded-none px-2 py-1 h-auto"
+            className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground rounded-none px-2 py-1 h-auto"
           >
             {saved ? "✓ Saved" : "Save"}
           </Button>
-          <div className="h-4 w-px bg-white/10" />
+          <div className="h-4 w-px bg-accent" />
           <Button
             variant="ghost"
             onClick={() => setPreviewing(true)}
             disabled={room.objects.length === 0}
-            className="font-mono text-xs uppercase tracking-widest text-[#ccff00] hover:text-[#ccff00] hover:bg-[#ccff00]/10 rounded-none px-3 py-1 h-auto disabled:opacity-30"
+            className="font-mono text-xs uppercase tracking-widest text-primary hover:text-primary hover:bg-primary/10 rounded-none px-3 py-1 h-auto disabled:opacity-30"
           >
             ▶ Play
           </Button>
-          <span className="font-mono text-[10px] text-white/30 uppercase tracking-widest">
+          <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
             {room.objects.length} obj · {room.triggers.length} trg
           </span>
         </div>
@@ -191,7 +191,7 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
       {/* Main area — 3 panels */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left: Object Palette */}
-        <aside className="w-56 border-r border-white/10 overflow-y-auto shrink-0">
+        <aside className="w-56 border-r border-border overflow-y-auto shrink-0">
           <ObjectPalette currentView={currentView} onAddObject={addObject} />
         </aside>
 
@@ -210,15 +210,15 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
         </main>
 
         {/* Right: Properties / Triggers */}
-        <aside className="w-80 border-l border-white/10 overflow-y-auto shrink-0 flex flex-col">
+        <aside className="w-80 border-l border-border overflow-y-auto shrink-0 flex flex-col">
           {/* Tab switcher */}
-          <div className="flex border-b border-white/10 shrink-0">
+          <div className="flex border-b border-border shrink-0">
             <button
               onClick={() => setRightPanel("properties")}
               className={`flex-1 font-mono text-[10px] uppercase tracking-widest py-3 transition-colors ${
                 rightPanel === "properties"
-                  ? "text-white bg-white/5 border-b border-[#ccff00]"
-                  : "text-white/40 hover:text-white/60"
+                  ? "text-foreground bg-muted border-b border-primary"
+                  : "text-muted-foreground hover:text-muted-foreground"
               }`}
             >
               Properties
@@ -227,8 +227,8 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
               onClick={() => setRightPanel("triggers")}
               className={`flex-1 font-mono text-[10px] uppercase tracking-widest py-3 transition-colors ${
                 rightPanel === "triggers"
-                  ? "text-white bg-white/5 border-b border-[#ccff00]"
-                  : "text-white/40 hover:text-white/60"
+                  ? "text-foreground bg-muted border-b border-primary"
+                  : "text-muted-foreground hover:text-muted-foreground"
               }`}
             >
               Triggers

@@ -46,7 +46,7 @@ export function ObjectPalette({
 
   return (
     <div className="p-3">
-      <div className="font-mono text-[10px] uppercase tracking-widest text-white/40 mb-4 px-1">
+      <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-4 px-1">
         // Objects
       </div>
       {CATEGORIES.map((cat) => {
@@ -54,7 +54,7 @@ export function ObjectPalette({
         if (items.length === 0) return null;
         return (
           <div key={cat} className="mb-4">
-            <div className="font-mono text-[10px] uppercase tracking-widest text-white/30 mb-2 px-1">
+            <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground/70 mb-2 px-1">
               {CATEGORY_LABELS[cat]}
             </div>
             <div className="space-y-0.5">
@@ -62,19 +62,19 @@ export function ObjectPalette({
                 <button
                   key={def.type}
                   onClick={() => handleAdd(def)}
-                  className="w-full flex items-center gap-2 px-2 py-1.5 text-left hover:bg-white/5 transition-colors group"
+                  className="w-full flex items-center gap-2 px-2 py-1.5 text-left hover:bg-accent transition-colors group"
                 >
                   <div className="w-6 h-6 shrink-0 flex items-center justify-center">
                     {hasSprite(def.type) ? (
                       <ObjectSprite type={def.type} width={20} height={20} />
                     ) : (
                       <div
-                        className="w-4 h-4 border border-white/10 group-hover:border-white/30"
+                        className="w-4 h-4 border border-border group-hover:border-foreground/30"
                         style={{ backgroundColor: def.color }}
                       />
                     )}
                   </div>
-                  <span className="text-xs text-white/60 group-hover:text-white transition-colors truncate">
+                  <span className="text-xs text-foreground/60 group-hover:text-foreground transition-colors truncate">
                     {def.name}
                   </span>
                 </button>

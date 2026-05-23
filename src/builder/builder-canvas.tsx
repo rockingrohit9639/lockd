@@ -133,13 +133,13 @@ export function BuilderCanvas({
   }
 
   return (
-    <div className="h-full flex items-center justify-center p-6 bg-[#080808]">
+    <div className="h-full flex items-center justify-center p-6 bg-muted">
       <div
         ref={containerRef}
-        className="relative w-full max-w-3xl aspect-[16/10] border border-white/10 overflow-hidden"
+        className="relative w-full max-w-3xl aspect-[16/10] border border-border overflow-hidden"
         style={{
           background:
-            "#1a1a1a url('https://images.unsplash.com/photo-1531685250784-7569952593d2?w=1200&q=80&fit=crop') center/cover",
+            "var(--background) url('https://images.unsplash.com/photo-1531685250784-7569952593d2?w=1200&q=80&fit=crop') center/cover",
         }}
         onClick={handleCanvasClick}
       >
@@ -148,7 +148,7 @@ export function BuilderCanvas({
 
         {/* Floor */}
         <div
-          className="absolute bottom-0 left-0 right-0 h-1/4 border-t border-white/[0.06]"
+          className="absolute bottom-0 left-0 right-0 h-1/4 border-t border-border/30"
           style={{
             background:
               "#111 url('https://images.unsplash.com/photo-1573869908170-64b53a60d8da?w=1200&q=80&fit=crop') center/cover",
@@ -170,7 +170,7 @@ export function BuilderCanvas({
         />
 
         {/* Wall label */}
-        <div className="absolute top-3 left-3 font-mono text-[10px] text-white/30 uppercase tracking-widest">
+        <div className="absolute top-3 left-3 font-mono text-[10px] text-muted-foreground/70 uppercase tracking-widest">
           {currentView} wall
         </div>
 
@@ -185,8 +185,8 @@ export function BuilderCanvas({
               onMouseDown={(e) => handleObjectMouseDown(e, obj)}
               className={`absolute cursor-move transition-shadow group ${
                 isSelected
-                  ? "outline outline-2 outline-[#ccff00] shadow-[0_0_12px_rgba(204,255,0,0.3)]"
-                  : "hover:outline hover:outline-1 hover:outline-white/30"
+                  ? "outline outline-2 outline-primary shadow-[0_0_12px_rgba(245,245,245,0.3)]"
+                  : "hover:outline hover:outline-1 hover:outline-foreground/30"
               } ${obj.hidden ? "opacity-40 border-dashed" : ""}`}
               style={{
                 left: `${obj.position.x}%`,
@@ -205,13 +205,13 @@ export function BuilderCanvas({
                   height={obj.size.height}
                 />
               )}
-              <span className="absolute -bottom-5 left-0 font-mono text-[9px] text-white/50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className="absolute -bottom-5 left-0 font-mono text-[9px] text-muted-foreground whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
                 {obj.name}
               </span>
               {isSelected && (
                 <div
                   onMouseDown={(e) => handleResizeMouseDown(e, obj)}
-                  className="absolute -bottom-1 -right-1 w-3 h-3 bg-[#ccff00] cursor-se-resize"
+                  className="absolute -bottom-1 -right-1 w-3 h-3 bg-primary cursor-se-resize"
                 />
               )}
             </div>
@@ -221,7 +221,7 @@ export function BuilderCanvas({
         {/* Empty state */}
         {visibleObjects.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <p className="font-mono text-xs text-white/20 uppercase tracking-widest">
+            <p className="font-mono text-xs text-muted-foreground/50 uppercase tracking-widest">
               Click objects in the palette to add them
             </p>
           </div>

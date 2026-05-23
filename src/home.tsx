@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import { Button } from "~/components/ui/button";
 
 interface HomeProps {
   onPlay: () => void;
@@ -8,192 +7,195 @@ interface HomeProps {
 
 export function Home({ onPlay, onBuild }: HomeProps) {
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white selection:bg-[#ccff00] selection:text-black">
-      {/* Nav */}
-      <header className="border-b border-white/10 px-8 py-5 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 bg-[#ccff00]" />
-          <span className="font-mono text-sm font-bold tracking-wide">
-            Lockd
-          </span>
-        </div>
-        <nav className="hidden sm:flex items-center gap-8 font-mono text-xs uppercase tracking-widest text-white/60">
-          <span
-            onClick={onPlay}
-            className="hover:text-white cursor-pointer transition-colors"
-          >
-            Play
-          </span>
-          <span
-            onClick={onBuild}
-            className="hover:text-white cursor-pointer transition-colors"
-          >
-            Build
-          </span>
-          <span className="hover:text-white cursor-pointer transition-colors text-white/30">
-            Browse
-          </span>
-          <Link
-            to="/login"
-            className="hover:text-white cursor-pointer transition-colors"
-          >
-            Log in
-          </Link>
-          <Link
-            to="/signup"
-            className="ml-2 bg-[#ccff00] text-black px-4 py-2 font-bold hover:bg-[#b8e600] cursor-pointer transition-colors"
-          >
-            Sign up
-          </Link>
-        </nav>
-      </header>
-
-      <main className="px-8 max-w-6xl mx-auto">
-        {/* Meta line */}
-        <div className="flex items-center justify-between pt-16 mb-12 font-mono text-xs uppercase tracking-widest text-white/40">
-          <span>// escape room platform</span>
-          <span>v0.1.0</span>
-        </div>
-
-        {/* Hero — title + room preview side by side */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
-          {/* Left: Title */}
-          <div>
-            <h1 className="text-[clamp(3rem,8vw,7rem)] font-black leading-[0.9] tracking-tight">
-              Lockd.
-            </h1>
-            <p className="text-[clamp(1.2rem,3vw,2.2rem)] font-light leading-tight text-white/70 mt-4">
-              Build escape rooms.
-              <br />
-              Share the link.
-              <br />
-              Watch them suffer.
-            </p>
-
-            <div className="mt-10">
-              <Button
-                onClick={onPlay}
-                className="bg-[#ccff00] text-black font-mono text-sm uppercase tracking-widest font-bold px-8 py-6 rounded-none hover:bg-[#b8e600] transition-colors"
-              >
-                Play Demo
-              </Button>
-            </div>
+    <div className="min-h-screen bg-background text-foreground selection:bg-foreground selection:text-background">
+      {/* Hero — full viewport with visual */}
+      <section className="relative h-screen w-full overflow-hidden bg-secondary">
+        {/* Nav overlay */}
+        <header className="absolute top-0 left-0 right-0 z-50 px-8 py-6 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 bg-foreground" />
+            <span className="font-mono text-sm font-bold tracking-wide">
+              Lockd
+            </span>
           </div>
+          <div className="flex items-center gap-6 font-mono text-xs uppercase tracking-widest">
+            <Link
+              to="/login"
+              className="text-muted-foreground hover:text-foreground transition-colors hidden sm:inline"
+            >
+              Log in
+            </Link>
+            <Link
+              to="/signup"
+              className="bg-foreground text-background px-4 py-2 font-bold hover:bg-foreground/80 transition-colors"
+            >
+              Sign up
+            </Link>
+          </div>
+        </header>
 
-          {/* Right: Room preview mockup */}
-          <div className="border border-white/10 relative overflow-hidden">
-            {/* Mini room preview */}
-            <div className="aspect-[4/3] bg-[#111] relative">
-              {/* Wall */}
-              <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a2e] to-[#16213e]" />
-              {/* Floor */}
-              <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-[#1a1207]" />
-              {/* Objects */}
-              <div className="absolute top-[20%] left-[15%] w-[60px] h-[45px] bg-[#8B4513] border border-white/5" />
-              <div className="absolute top-[30%] right-[20%] w-[50px] h-[70px] bg-[#5C4033] border border-white/5" />
-              <div className="absolute top-[15%] left-[45%] w-[55px] h-[40px] bg-[#8B0000] border border-white/5" />
-              <div className="absolute top-[50%] left-[30%] w-[20px] h-[10px] bg-[#FFD700]" />
-              {/* Cursor indicator */}
-              <div className="absolute top-[48%] left-[31%] w-4 h-4 border-2 border-[#ccff00] animate-pulse" />
-              {/* Label */}
-              <div className="absolute bottom-3 right-3 font-mono text-[10px] text-white/30 uppercase">
-                North Wall
-              </div>
-              {/* Scan lines */}
+        {/* Hero visual placeholder (will be gameplay video) */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-[80%] h-[70%] relative">
+            <div className="absolute inset-0 bg-muted border border-border">
+              {/* Mock room elements */}
+              <div className="absolute top-[15%] left-[10%] w-[120px] h-[90px] bg-[#8B4513]/20 border border-border" />
+              <div className="absolute top-[20%] right-[15%] w-[80px] h-[120px] bg-[#5C4033]/20 border border-border" />
+              <div className="absolute top-[10%] left-[40%] w-[100px] h-[80px] bg-[#8B0000]/15 border border-border" />
+              <div className="absolute top-[50%] left-[25%] w-[30px] h-[15px] bg-[#FFD700]/50" />
+              <div className="absolute bottom-[20%] right-[25%] w-[60px] h-[60px] bg-foreground/10 border border-border" />
+              <div className="absolute bottom-[30%] left-[50%] w-[40px] h-[40px] bg-foreground/5 border border-border" />
+              {/* Grid overlay */}
               <div
                 className="absolute inset-0 pointer-events-none opacity-[0.03]"
                 style={{
                   backgroundImage:
-                    "repeating-linear-gradient(0deg, transparent, transparent 2px, white 2px, white 3px)",
+                    "linear-gradient(currentColor 1px, transparent 1px), linear-gradient(90deg, currentColor 1px, transparent 1px)",
+                  backgroundSize: "60px 60px",
                 }}
               />
             </div>
-            {/* Bottom bar */}
-            <div className="border-t border-white/10 px-3 py-2 flex items-center justify-between bg-[#0a0a0a]">
-              <span className="font-mono text-[10px] text-white/40">
-                INVENTORY: Golden Key
-              </span>
-              <span className="font-mono text-[10px] text-[#ccff00]">
-                ● PLAYING
-              </span>
+            {/* Play button overlay */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <button
+                onClick={onPlay}
+                className="w-20 h-20 bg-background/90 border border-border flex items-center justify-center hover:bg-background transition-colors group"
+              >
+                <div className="w-0 h-0 border-t-[10px] border-t-transparent border-b-[10px] border-b-transparent border-l-[16px] border-l-foreground ml-1 group-hover:border-l-muted-foreground transition-colors" />
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Dotted separator */}
-        <div className="border-t border-dashed border-white/10 my-16" />
-
-        {/* How it works — denser layout */}
-        <div className="mb-8 font-mono text-xs uppercase tracking-widest text-white/40">
-          <span>// how it works</span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-0 border border-white/10 mb-8">
-          <Feature
-            num="01"
-            title="Build"
-            desc="Drag objects into rooms. Wire up triggers — click this, reveal that, unlock the door."
-          />
-          <Feature
-            num="02"
-            title="Share"
-            desc="One URL. Send it to anyone. They're trapped until they solve it."
-          />
-          <Feature
-            num="03"
-            title="Escape"
-            desc="Search walls, collect items, crack codes. Or get stuck. That's the fun."
-          />
-        </div>
-
-        {/* Stats / social proof placeholder */}
-        <div className="grid grid-cols-3 gap-0 border border-white/10 mb-16">
-          <div className="p-5 border-r border-white/10 text-center">
-            <span className="block font-mono text-2xl font-bold text-[#ccff00]">
-              ∞
-            </span>
-            <span className="font-mono text-[10px] text-white/40 uppercase tracking-widest">
-              Rooms possible
-            </span>
-          </div>
-          <div className="p-5 border-r border-white/10 text-center">
-            <span className="block font-mono text-2xl font-bold">4</span>
-            <span className="font-mono text-[10px] text-white/40 uppercase tracking-widest">
-              Walls per room
-            </span>
-          </div>
-          <div className="p-5 text-center">
-            <span className="block font-mono text-2xl font-bold">30+</span>
-            <span className="font-mono text-[10px] text-white/40 uppercase tracking-widest">
-              Object types
-            </span>
+        {/* Hero text overlay — bottom left */}
+        <div className="absolute bottom-0 left-0 right-0 px-8 pb-10">
+          <div className="max-w-6xl mx-auto flex items-end justify-between">
+            <div>
+              <span className="font-mono text-[10px] uppercase tracking-widest text-background bg-foreground px-2 py-1 inline-block mb-3">
+                Escape Room Builder
+              </span>
+              <h1 className="text-[clamp(2rem,5vw,4rem)] font-black leading-[1.1] tracking-tight">
+                Build. Share.
+                <br />
+                Escape.
+              </h1>
+            </div>
+            <button
+              onClick={onPlay}
+              className="hidden sm:inline-block font-mono text-xs border border-foreground/30 px-5 py-3 hover:border-foreground transition-colors"
+            >
+              Read more
+            </button>
           </div>
         </div>
+      </section>
 
-        {/* Hatched line divider like Motion */}
-        <div className="flex items-center gap-2 text-white/20 mb-16 overflow-hidden">
-          <span className="font-mono text-xs">+</span>
-          <div
-            className="flex-1 h-px"
-            style={{
-              backgroundImage:
-                "repeating-linear-gradient(90deg, transparent, transparent 2px, currentColor 2px, currentColor 6px)",
-            }}
-          />
-          <span className="font-mono text-xs">+</span>
-        </div>
+      {/* Key Capabilities */}
+      <section className="px-8 py-24 bg-secondary">
+        <div className="max-w-6xl mx-auto">
+          <span className="font-mono text-xs font-bold uppercase tracking-widest block mb-16">
+            Key Capabilities
+          </span>
+          <p className="text-[clamp(1.5rem,3.5vw,2.5rem)] font-bold leading-tight max-w-3xl mb-20">
+            We make it dead simple to create point-and-click escape rooms and
+            share them with anyone. Here are our superpowers.
+          </p>
 
-        {/* Footer */}
-        <div className="pb-16 flex items-center justify-between font-mono text-xs text-white/30 uppercase tracking-widest">
-          <span>← → to navigate • click to interact</span>
-          <span>open source</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
+            <Capability
+              num="01"
+              title="Drag & Drop Builder"
+              desc="Place objects, wire triggers, create puzzles. No code required."
+            />
+            <Capability
+              num="02"
+              title="Instant Sharing"
+              desc="Every room gets a unique URL. Send it anywhere, play immediately."
+            />
+            <Capability
+              num="03"
+              title="Inventory System"
+              desc="Keys, codes, items — classic point-and-click puzzle mechanics built in."
+            />
+            <Capability
+              num="04"
+              title="Hidden Surprises"
+              desc="Easter eggs and unexpected moments tucked into every corner."
+            />
+          </div>
         </div>
-      </main>
+      </section>
+
+      {/* Projects / What you can build */}
+      <section className="px-8 py-24 bg-background">
+        <div className="max-w-6xl mx-auto">
+          <span className="font-mono text-xs font-bold uppercase tracking-widest block mb-16">
+            What You Can Build
+          </span>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <ProjectCard
+              title="Mystery Mansion"
+              type="Puzzle"
+              desc="Classic locked room with hidden compartments and cipher locks."
+            />
+            <ProjectCard
+              title="Space Station"
+              type="Sci-Fi"
+              desc="Fix the airlock before oxygen runs out. Timer-based tension."
+            />
+            <ProjectCard
+              title="Meme Dungeon"
+              type="Chaos"
+              desc="Nothing makes sense. That's the point. Pure unhinged fun."
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="dark px-8 py-24 bg-background text-foreground">
+        <div className="max-w-6xl mx-auto text-center">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+            Ready to trap your friends?
+          </h2>
+          <p className="font-mono text-sm text-muted-foreground mb-10">
+            Free to use. No account needed to play.
+          </p>
+          <div className="flex items-center justify-center gap-4">
+            <Link
+              to="/signup"
+              className="bg-foreground text-background font-mono text-sm uppercase tracking-widest font-bold px-8 py-4 hover:bg-foreground/90 transition-colors"
+            >
+              Get Started
+            </Link>
+            <button
+              onClick={onBuild}
+              className="border border-border font-mono text-sm uppercase tracking-widest font-bold px-8 py-4 hover:border-foreground/60 transition-colors"
+            >
+              Try Builder
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="px-8 py-8 bg-background border-t border-border">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-foreground" />
+            <span className="font-mono text-xs font-bold">Lockd</span>
+          </div>
+          <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
+            Open source • Built for fun
+          </span>
+        </div>
+      </footer>
     </div>
   );
 }
 
-function Feature({
+function Capability({
   num,
   title,
   desc,
@@ -203,12 +205,34 @@ function Feature({
   desc: string;
 }) {
   return (
-    <div className="p-6 border-r border-white/10 last:border-r-0">
-      <span className="font-mono text-xs text-white/30 block mb-3">{num}</span>
-      <h3 className="font-mono text-sm font-bold uppercase tracking-wide mb-2">
+    <div>
+      <span className="font-mono text-[10px] text-muted-foreground block mb-3">
+        {num}
+      </span>
+      <h3 className="text-sm font-bold mb-2">{title}</h3>
+      <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+    </div>
+  );
+}
+
+function ProjectCard({
+  title,
+  type,
+  desc,
+}: {
+  title: string;
+  type: string;
+  desc: string;
+}) {
+  return (
+    <div className="border border-border p-8 hover:border-foreground transition-colors group cursor-pointer">
+      <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground block mb-3">
+        {type}
+      </span>
+      <h3 className="text-lg font-bold mb-2 group-hover:text-muted-foreground transition-colors">
         {title}
       </h3>
-      <p className="text-sm text-white/50 leading-relaxed">{desc}</p>
+      <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
     </div>
   );
 }

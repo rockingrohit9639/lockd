@@ -34,14 +34,14 @@ export function RoomView({ room, state, onClickObject }: RoomViewProps) {
         className="absolute inset-0"
         style={{
           background:
-            "#1a1a1a url('https://images.unsplash.com/photo-1531685250784-7569952593d2?w=1200&q=80&fit=crop') center/cover",
+            "var(--background) url('https://images.unsplash.com/photo-1531685250784-7569952593d2?w=1200&q=80&fit=crop') center/cover",
         }}
       />
       <div className="absolute inset-0 bg-black/40" />
 
       {/* Floor */}
       <div
-        className="absolute bottom-0 left-0 right-0 h-1/4 border-t border-white/[0.06]"
+        className="absolute bottom-0 left-0 right-0 h-1/4 border-t border-border/30"
         style={{
           background:
             "#111 url('https://images.unsplash.com/photo-1573869908170-64b53a60d8da?w=1200&q=80&fit=crop') center/cover",
@@ -51,15 +51,15 @@ export function RoomView({ room, state, onClickObject }: RoomViewProps) {
       </div>
 
       {/* View label */}
-      <div className="absolute top-4 left-4 font-mono text-[10px] text-white/40 uppercase tracking-widest">
+      <div className="absolute top-4 left-4 font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
         {state.currentView} wall
       </div>
 
       {/* Navigation hints */}
-      <div className="absolute left-4 bottom-[26%] font-mono text-[10px] text-white/30 uppercase tracking-widest">
+      <div className="absolute left-4 bottom-[26%] font-mono text-[10px] text-muted-foreground/70 uppercase tracking-widest">
         ← {PREV_VIEW[state.currentView]}
       </div>
-      <div className="absolute right-4 bottom-[26%] font-mono text-[10px] text-white/30 uppercase tracking-widest">
+      <div className="absolute right-4 bottom-[26%] font-mono text-[10px] text-muted-foreground/70 uppercase tracking-widest">
         {NEXT_VIEW[state.currentView]} →
       </div>
 

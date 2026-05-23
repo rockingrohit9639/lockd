@@ -39,13 +39,13 @@ export function TriggerBuilder({
   return (
     <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <span className="font-mono text-[10px] uppercase tracking-widest text-white/40">
+        <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
           // Triggers ({room.triggers.length})
         </span>
         <Button
           variant="ghost"
           onClick={() => setIsAdding(true)}
-          className="font-mono text-[10px] uppercase tracking-widest text-[#ccff00] hover:text-[#ccff00] hover:bg-[#ccff00]/10 rounded-none px-2 py-1 h-auto"
+          className="font-mono text-[10px] uppercase tracking-widest text-primary hover:text-primary hover:bg-primary/10 rounded-none px-2 py-1 h-auto"
         >
           + Add
         </Button>
@@ -74,7 +74,7 @@ export function TriggerBuilder({
       )}
 
       {room.triggers.length === 0 && !isAdding && (
-        <p className="font-mono text-xs text-white/20 text-center py-8">
+        <p className="font-mono text-xs text-muted-foreground/50 text-center py-8">
           No triggers yet. Add one to make objects interactive.
         </p>
       )}
@@ -117,12 +117,12 @@ function TriggerCard({
     .join(", ");
 
   return (
-    <div className="border border-white/10 p-3 space-y-1 group">
+    <div className="border border-border p-3 space-y-1 group">
       <div className="flex items-center justify-between">
-        <span className="font-mono text-xs text-white/70">
-          <span className="text-[#ccff00]">{trigger.event}</span>
+        <span className="font-mono text-xs text-foreground/70">
+          <span className="text-primary">{trigger.event}</span>
           {" → "}
-          <span className="text-white/50">{source?.name ?? "?"}</span>
+          <span className="text-muted-foreground">{source?.name ?? "?"}</span>
         </span>
         <button
           onClick={onDelete}
@@ -131,7 +131,7 @@ function TriggerCard({
           ×
         </button>
       </div>
-      <p className="font-mono text-[10px] text-white/40">{actionSummary}</p>
+      <p className="font-mono text-[10px] text-muted-foreground">{actionSummary}</p>
     </div>
   );
 }
@@ -184,20 +184,20 @@ function NewTriggerForm({
   }
 
   return (
-    <div className="border border-[#ccff00]/30 p-4 space-y-4 bg-[#ccff00]/5">
-      <div className="font-mono text-[10px] uppercase tracking-widest text-[#ccff00]">
+    <div className="border border-primary/30 p-4 space-y-4 bg-primary/5">
+      <div className="font-mono text-[10px] uppercase tracking-widest text-primary">
         New Trigger
       </div>
 
       {/* Event */}
       <div className="space-y-1">
-        <label className="font-mono text-[10px] text-white/40 uppercase tracking-widest block">
+        <label className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest block">
           When
         </label>
         <select
           value={event}
           onChange={(e) => setEvent(e.target.value as TriggerEvent)}
-          className="w-full bg-white/5 border border-white/10 px-3 py-2 text-xs font-mono text-white outline-none focus:border-[#ccff00]"
+          className="w-full bg-accent border border-border px-3 py-2 text-xs font-mono text-foreground outline-none focus:border-primary"
         >
           {EVENTS.map((e) => (
             <option key={e.value} value={e.value}>
@@ -209,13 +209,13 @@ function NewTriggerForm({
 
       {/* Source object */}
       <div className="space-y-1">
-        <label className="font-mono text-[10px] text-white/40 uppercase tracking-widest block">
+        <label className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest block">
           On object
         </label>
         <select
           value={sourceId}
           onChange={(e) => setSourceId(e.target.value)}
-          className="w-full bg-white/5 border border-white/10 px-3 py-2 text-xs font-mono text-white outline-none focus:border-[#ccff00]"
+          className="w-full bg-accent border border-border px-3 py-2 text-xs font-mono text-foreground outline-none focus:border-primary"
         >
           {room.objects.map((obj) => (
             <option key={obj.id} value={obj.id}>
@@ -228,13 +228,13 @@ function NewTriggerForm({
       {/* Item (for use_item_on) */}
       {event === "use_item_on" && (
         <div className="space-y-1">
-          <label className="font-mono text-[10px] text-white/40 uppercase tracking-widest block">
+          <label className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest block">
             With item
           </label>
           <select
             value={itemId}
             onChange={(e) => setItemId(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 px-3 py-2 text-xs font-mono text-white outline-none focus:border-[#ccff00]"
+            className="w-full bg-accent border border-border px-3 py-2 text-xs font-mono text-foreground outline-none focus:border-primary"
           >
             <option value="">Select item...</option>
             {room.objects
@@ -250,7 +250,7 @@ function NewTriggerForm({
 
       {/* Condition (optional) */}
       <div className="space-y-1">
-        <label className="font-mono text-[10px] text-white/40 uppercase tracking-widest block">
+        <label className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest block">
           Condition (optional)
         </label>
         <div className="flex gap-2">
@@ -261,7 +261,7 @@ function NewTriggerForm({
                 e.target.value as "" | "has_item" | "not_has_item",
               )
             }
-            className="flex-1 bg-white/5 border border-white/10 px-2 py-2 text-xs font-mono text-white outline-none focus:border-[#ccff00]"
+            className="flex-1 bg-accent border border-border px-2 py-2 text-xs font-mono text-foreground outline-none focus:border-primary"
           >
             <option value="">None</option>
             <option value="has_item">Has item</option>
@@ -271,7 +271,7 @@ function NewTriggerForm({
             <select
               value={conditionItemId}
               onChange={(e) => setConditionItemId(e.target.value)}
-              className="flex-1 bg-white/5 border border-white/10 px-2 py-2 text-xs font-mono text-white outline-none focus:border-[#ccff00]"
+              className="flex-1 bg-accent border border-border px-2 py-2 text-xs font-mono text-foreground outline-none focus:border-primary"
             >
               <option value="">Select...</option>
               {room.objects
@@ -288,7 +288,7 @@ function NewTriggerForm({
 
       {/* Actions */}
       <div className="space-y-2">
-        <label className="font-mono text-[10px] text-white/40 uppercase tracking-widest block">
+        <label className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest block">
           Then do
         </label>
         {actions.map((action, i) => (
@@ -305,7 +305,7 @@ function NewTriggerForm({
           onChange={(e) => {
             if (e.target.value) addAction(e.target.value as ActionType);
           }}
-          className="w-full bg-white/5 border border-dashed border-white/20 px-3 py-2 text-xs font-mono text-white/40 outline-none focus:border-[#ccff00]"
+          className="w-full bg-accent border border-dashed border-border px-3 py-2 text-xs font-mono text-muted-foreground outline-none focus:border-primary"
         >
           <option value="">+ Add action...</option>
           {ACTIONS.map((a) => (
@@ -321,14 +321,14 @@ function NewTriggerForm({
         <Button
           onClick={handleSave}
           disabled={!sourceId || actions.length === 0}
-          className="flex-1 bg-[#ccff00] text-black font-mono text-xs uppercase tracking-widest font-bold rounded-none hover:bg-[#b8e600] disabled:opacity-30"
+          className="flex-1 bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest font-bold rounded-none hover:bg-primary/90 disabled:opacity-30"
         >
           Save
         </Button>
         <Button
           variant="ghost"
           onClick={onCancel}
-          className="font-mono text-xs uppercase tracking-widest text-white/40 hover:text-white rounded-none"
+          className="font-mono text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground rounded-none"
         >
           Cancel
         </Button>
@@ -349,8 +349,8 @@ function ActionRow({
   onRemove: () => void;
 }) {
   return (
-    <div className="flex items-center gap-2 bg-white/5 border border-white/10 p-2">
-      <span className="font-mono text-[10px] text-[#ccff00] uppercase shrink-0">
+    <div className="flex items-center gap-2 bg-accent border border-border p-2">
+      <span className="font-mono text-[10px] text-primary uppercase shrink-0">
         {action.type.replace(/_/g, " ")}
       </span>
 
@@ -360,7 +360,7 @@ function ActionRow({
         <select
           value={action.targetId ?? ""}
           onChange={(e) => onUpdate({ targetId: e.target.value })}
-          className="flex-1 bg-transparent border-none text-xs font-mono text-white outline-none"
+          className="flex-1 bg-transparent border-none text-xs font-mono text-foreground outline-none"
         >
           <option value="">target...</option>
           {room.objects.map((obj) => (
@@ -377,7 +377,7 @@ function ActionRow({
           value={action.message ?? ""}
           onChange={(e) => onUpdate({ message: e.target.value })}
           placeholder="Message text..."
-          className="flex-1 bg-transparent border-none text-xs font-mono text-white outline-none placeholder:text-white/20"
+          className="flex-1 bg-transparent border-none text-xs font-mono text-foreground outline-none placeholder:text-muted-foreground/50"
         />
       )}
 
@@ -385,7 +385,7 @@ function ActionRow({
         <select
           value={action.memeId ?? ""}
           onChange={(e) => onUpdate({ memeId: e.target.value })}
-          className="flex-1 bg-transparent border-none text-xs font-mono text-white outline-none"
+          className="flex-1 bg-transparent border-none text-xs font-mono text-foreground outline-none"
         >
           <option value="">meme...</option>
           <option value="rickroll">Rickroll</option>
