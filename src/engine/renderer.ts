@@ -1,13 +1,14 @@
 import type {
-  AABB,
   CollisionZone,
-  FacingDirection,
   MapConfig,
   PlayerState,
   RoomObject,
-  Vec2,
 } from "../shared/types";
+import type { AnimationState } from "./animation";
+import { drawPlayer } from "./animation";
 import type { Camera } from "./camera";
+import { drawObjectSprite } from "./object-sprites";
+import { getSprite } from "./sprite-cache";
 
 export interface RenderContext {
   ctx: CanvasRenderingContext2D;
@@ -19,6 +20,7 @@ export interface RenderContext {
   playerSize: { width: number; height: number };
   nearbyObjectId: string | null;
   hiddenObjects: Set<string>;
+  animation: AnimationState;
   debug: boolean;
 }
 
@@ -31,8 +33,7 @@ export function render(rc: RenderContext): void {
   ctx.translate(-camera.x, -camera.y);
 
   drawBackground(rc);
-  drawObjects(rc);
-  drawPlayer(rc);
+  drawScene(rc);
   drawInteractionPrompt(rc);
 
   if (rc.debug) {
@@ -43,12 +44,12 @@ export function render(rc: RenderContext): void {
 }
 
 function drawBackground(rc: RenderContext): void {
-  const { ctx, map } = rc;
+  const { ctx, map, collisionZones } = rc;
   ctx.fillStyle = map.backgroundColor;
   ctx.fillRect(0, 0, map.width, map.height);
 
   // Grid for visual reference
-  ctx.strokeStyle = "rgba(0, 0, 0, 0.05)";
+  ctx.strokeStyle = "rgba(0, 0, 0, 0.04)";
   ctx.lineWidth = 1;
   const gridSize = 64;
   for (let x = 0; x <= map.width; x += gridSize) {
@@ -63,72 +64,96 @@ function drawBackground(rc: RenderContext): void {
     ctx.lineTo(map.width, y);
     ctx.stroke();
   }
-}
 
-function drawObjects(rc: RenderContext): void {
-  const { ctx, objects, hiddenObjects } = rc;
-
-  const visible = objects
-    .filter((o) => !hiddenObjects.has(o.id))
-    .sort((a, b) => {
-      if (a.zIndex !== b.zIndex) return a.zIndex - b.zIndex;
-      return a.position.y + a.size.height - (b.position.y + b.size.height);
-    });
-
-  for (const obj of visible) {
-    ctx.fillStyle = "#5a5a5a";
-    ctx.fillRect(
-      obj.position.x,
-      obj.position.y,
-      obj.size.width,
-      obj.size.height,
-    );
-
-    // Object label
-    ctx.fillStyle = "#333";
-    ctx.font = "10px monospace";
-    ctx.textAlign = "center";
-    ctx.fillText(
-      obj.name,
-      obj.position.x + obj.size.width / 2,
-      obj.position.y - 4,
-    );
+  // Draw walls/collision zones as solid blocks
+  ctx.fillStyle = "#9ca3af";
+  for (const zone of collisionZones) {
+    const { x, y, width, height } = zone.bounds;
+    ctx.fillRect(x, y, width, height);
+    // Inner shadow for depth
+    ctx.fillStyle = "rgba(0, 0, 0, 0.15)";
+    ctx.fillRect(x, y + height - 4, width, 4);
+    ctx.fillStyle = "#9ca3af";
   }
 }
 
-function drawPlayer(rc: RenderContext): void {
-  const { ctx, player, playerSize } = rc;
+function drawScene(rc: RenderContext): void {
+  const { objects, hiddenObjects, player, playerSize } = rc;
+
+  const visible = objects.filter((o) => !hiddenObjects.has(o.id));
+
+  // Player's "foot" Y for depth sorting
+  const playerFootY = player.position.y + playerSize.height / 2;
+
+  // Sort objects + player together by Y-bottom
+  type Sortable = { type: "object"; obj: typeof visible[0] } | { type: "player" };
+  const items: Sortable[] = visible.map((obj) => ({ type: "object", obj }));
+  items.push({ type: "player" });
+
+  items.sort((a, b) => {
+    const ay = a.type === "player" ? playerFootY : a.obj.position.y + a.obj.size.height;
+    const by = b.type === "player" ? playerFootY : b.obj.position.y + b.obj.size.height;
+    if (a.type === "object" && b.type === "object") {
+      if (a.obj.zIndex !== b.obj.zIndex) return a.obj.zIndex - b.obj.zIndex;
+    }
+    return ay - by;
+  });
+
+  for (const item of items) {
+    if (item.type === "player") {
+      drawPlayerCharacter(rc);
+    } else {
+      drawObject(rc, item.obj);
+    }
+  }
+}
+
+function drawObject(rc: RenderContext, obj: RoomObject): void {
+  const { ctx } = rc;
+  const { x } = obj.position;
+  const { y } = obj.position;
+  const w = obj.size.width;
+  const h = obj.size.height;
+
+  // Try custom sprite URL first
+  if (obj.spriteUrl) {
+    const bitmap = getSprite(obj.spriteUrl);
+    if (bitmap) {
+      ctx.drawImage(bitmap, x, y, w, h);
+      return;
+    }
+  }
+
+  // Try procedural sprite
+  if (!drawObjectSprite(ctx, obj.type, x, y, w, h)) {
+    ctx.fillStyle = "#5a5a5a";
+    ctx.fillRect(x, y, w, h);
+  }
+
+  // Shadow beneath object
+  ctx.fillStyle = "rgba(0, 0, 0, 0.08)";
+  ctx.beginPath();
+  ctx.ellipse(x + w / 2, y + h, w * 0.4, 3, 0, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+
+function drawPlayerCharacter(rc: RenderContext): void {
+  const { ctx, player, playerSize, animation } = rc;
 
   const x = player.position.x - playerSize.width / 2;
   const y = player.position.y - playerSize.height / 2;
 
-  // Body
-  ctx.fillStyle = "#2563eb";
-  ctx.fillRect(x, y, playerSize.width, playerSize.height);
-
-  // Direction indicator
-  ctx.fillStyle = "#fff";
-  const indicatorSize = 6;
-  const center: Vec2 = { x: player.position.x, y: player.position.y };
-  let ix = center.x - indicatorSize / 2;
-  let iy = center.y - indicatorSize / 2;
-
-  switch (player.facing) {
-    case "up":
-      iy = y;
-      break;
-    case "down":
-      iy = y + playerSize.height - indicatorSize;
-      break;
-    case "left":
-      ix = x;
-      break;
-    case "right":
-      ix = x + playerSize.width - indicatorSize;
-      break;
-  }
-
-  ctx.fillRect(ix, iy, indicatorSize, indicatorSize);
+  drawPlayer(
+    ctx,
+    x,
+    y,
+    playerSize.width,
+    playerSize.height,
+    player.facing,
+    player.isMoving,
+    animation.frame,
+  );
 }
 
 function drawInteractionPrompt(rc: RenderContext): void {

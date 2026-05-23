@@ -1,4 +1,9 @@
 import type { AABB, FacingDirection, GameState, Room } from "../shared/types";
+import {
+  type AnimationState,
+  createAnimationState,
+  updateAnimation,
+} from "./animation";
 import { type Camera, createCamera, updateCamera } from "./camera";
 import { clampToWorld, resolveMovement } from "./collision";
 import {
@@ -10,6 +15,7 @@ import {
 } from "./input";
 import { findNearestInteractable } from "./proximity";
 import { type RenderContext, render } from "./renderer";
+import { preloadSprites } from "./sprite-cache";
 
 export interface GameEngine {
   start: () => void;
@@ -29,11 +35,20 @@ export function createGameEngine(
   const input: InputState = createInputState();
   let camera: Camera = createCamera(canvas.width, canvas.height);
   let state: GameState = initialState;
+  let animation: AnimationState = createAnimationState();
   let animFrameId: number | null = null;
   let lastTime = 0;
   let interactCallback: ((objectId: string) => void) | null = null;
 
   const detachInput = attachInputListeners(input);
+
+  // Preload custom sprites
+  const spriteUrls = room.objects
+    .filter((o) => o.spriteUrl)
+    .map((o) => o.spriteUrl!);
+  if (spriteUrls.length > 0) {
+    preloadSprites(spriteUrls);
+  }
 
   // Collect all collision AABBs
   function getColliders(): AABB[] {
@@ -102,6 +117,9 @@ export function createGameEngine(
       },
     };
 
+    // Update animation
+    animation = updateAnimation(animation, isMoving, dt);
+
     // Proximity detection
     const nearbyObjectId = findNearestInteractable(
       newPos,
@@ -136,6 +154,7 @@ export function createGameEngine(
       playerSize: room.player.size,
       nearbyObjectId: state.nearbyObjectId,
       hiddenObjects: state.hiddenObjects,
+      animation,
       debug: false,
     };
 
