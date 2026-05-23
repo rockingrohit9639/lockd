@@ -1,42 +1,19 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { signUp } from "~/lib/auth-client";
+import { useSignup } from "~/hooks/auth/use-signup";
 
 export const Route = createFileRoute("/signup")({
   component: SignUpPage,
 });
 
 function SignUpPage() {
-  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    const { error: authError } = await signUp.email({
-      name,
-      email,
-      password,
-    });
-
-    if (authError) {
-      setError(authError.message ?? "Something went wrong");
-      setLoading(false);
-      return;
-    }
-
-    navigate({ to: "/build" });
-  }
+  const signup = useSignup();
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white selection:bg-[#ccff00] selection:text-black flex flex-col">
-      {/* Header */}
       <header className="border-b border-white/10 px-8 py-5 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
           <div className="w-6 h-6 bg-[#ccff00]" />
@@ -52,7 +29,6 @@ function SignUpPage() {
         </Link>
       </header>
 
-      {/* Form */}
       <main className="flex-1 flex items-center justify-center px-8">
         <div className="w-full max-w-sm">
           <div className="mb-10">
@@ -64,7 +40,13 @@ function SignUpPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              signup.mutate({ name, email, password });
+            }}
+            className="flex flex-col gap-5"
+          >
             <div className="flex flex-col gap-2">
               <label className="font-mono text-xs uppercase tracking-widest text-white/60">
                 Name
@@ -108,16 +90,18 @@ function SignUpPage() {
               />
             </div>
 
-            {error && (
-              <p className="font-mono text-xs text-red-400">{error}</p>
+            {signup.error && (
+              <p className="font-mono text-xs text-red-400">
+                {signup.error.message}
+              </p>
             )}
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={signup.isPending}
               className="w-full bg-[#ccff00] text-black font-mono text-sm uppercase tracking-widest font-bold px-4 py-4 hover:bg-[#b8e600] transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-2"
             >
-              {loading ? "Creating..." : "Create Account"}
+              {signup.isPending ? "Creating..." : "Create Account"}
             </button>
           </form>
 

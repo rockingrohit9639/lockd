@@ -17,6 +17,6 @@ export default defineConfig({
 			srcDirectory: "src",
 		}),
 		react(),
-		nitro({ preset: "vercel" }),
+		nitro({ preset: "vercel", scanDirs: ["server"] }),
 	],
 });
