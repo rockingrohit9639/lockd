@@ -86,13 +86,17 @@ function drawScene(rc: RenderContext): void {
   const playerFootY = player.position.y + playerSize.height / 2;
 
   // Sort objects + player together by Y-bottom
-  type Sortable = { type: "object"; obj: typeof visible[0] } | { type: "player" };
+  type Sortable =
+    | { type: "object"; obj: (typeof visible)[0] }
+    | { type: "player" };
   const items: Sortable[] = visible.map((obj) => ({ type: "object", obj }));
   items.push({ type: "player" });
 
   items.sort((a, b) => {
-    const ay = a.type === "player" ? playerFootY : a.obj.position.y + a.obj.size.height;
-    const by = b.type === "player" ? playerFootY : b.obj.position.y + b.obj.size.height;
+    const ay =
+      a.type === "player" ? playerFootY : a.obj.position.y + a.obj.size.height;
+    const by =
+      b.type === "player" ? playerFootY : b.obj.position.y + b.obj.size.height;
     if (a.type === "object" && b.type === "object") {
       if (a.obj.zIndex !== b.obj.zIndex) return a.obj.zIndex - b.obj.zIndex;
     }
@@ -136,7 +140,6 @@ function drawObject(rc: RenderContext, obj: RoomObject): void {
   ctx.ellipse(x + w / 2, y + h, w * 0.4, 3, 0, 0, Math.PI * 2);
   ctx.fill();
 }
-
 
 function drawPlayerCharacter(rc: RenderContext): void {
   const { ctx, player, playerSize, animation } = rc;

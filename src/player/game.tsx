@@ -27,7 +27,12 @@ export function Game({ room, onExit }: GameProps) {
 
       let newState: GameState;
       if (selectedItemRef.current) {
-        newState = handleUseItemOn(selectedItemRef.current, objectId, room, engineState);
+        newState = handleUseItemOn(
+          selectedItemRef.current,
+          objectId,
+          room,
+          engineState,
+        );
         setSelectedItem(null);
       } else {
         newState = handleInteract(objectId, room, engineState);

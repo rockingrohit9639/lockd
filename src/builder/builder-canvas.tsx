@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { AABB, CollisionZone, Room, RoomObject, Vec2 } from "../shared/types";
 import { drawObjectSprite } from "../engine/object-sprites";
+import type {
+  AABB,
+  CollisionZone,
+  Room,
+  RoomObject,
+  Vec2,
+} from "../shared/types";
 
 interface BuilderCanvasProps {
   room: Room;
@@ -31,7 +37,11 @@ export function BuilderCanvas({
 }: BuilderCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [view, setView] = useState<ViewState>({ offsetX: 0, offsetY: 0, zoom: 0.5 });
+  const [view, setView] = useState<ViewState>({
+    offsetX: 0,
+    offsetY: 0,
+    zoom: 0.5,
+  });
   const [dragging, setDragging] = useState<{
     type: "pan" | "move" | "resize" | "draw-collision";
     startX: number;
@@ -116,8 +126,18 @@ export function BuilderCanvas({
       ctx.strokeStyle = "rgba(107, 114, 128, 0.8)";
       ctx.lineWidth = 2 / v.zoom;
       for (const zone of currentRoom.collisionZones) {
-        ctx.fillRect(zone.bounds.x, zone.bounds.y, zone.bounds.width, zone.bounds.height);
-        ctx.strokeRect(zone.bounds.x, zone.bounds.y, zone.bounds.width, zone.bounds.height);
+        ctx.fillRect(
+          zone.bounds.x,
+          zone.bounds.y,
+          zone.bounds.width,
+          zone.bounds.height,
+        );
+        ctx.strokeRect(
+          zone.bounds.x,
+          zone.bounds.y,
+          zone.bounds.width,
+          zone.bounds.height,
+        );
       }
 
       // Objects
@@ -149,7 +169,12 @@ export function BuilderCanvas({
           // Resize handle
           ctx.fillStyle = "#2563eb";
           const handleSize = 8 / v.zoom;
-          ctx.fillRect(x + w - handleSize / 2, y + h - handleSize / 2, handleSize, handleSize);
+          ctx.fillRect(
+            x + w - handleSize / 2,
+            y + h - handleSize / 2,
+            handleSize,
+            handleSize,
+          );
         }
 
         // Interaction radius (subtle)
@@ -193,8 +218,18 @@ export function BuilderCanvas({
         ctx.fillStyle = "rgba(239, 68, 68, 0.2)";
         ctx.strokeStyle = "rgba(239, 68, 68, 0.8)";
         ctx.lineWidth = 2 / v.zoom;
-        ctx.fillRect(currentDrawRect.x, currentDrawRect.y, currentDrawRect.width, currentDrawRect.height);
-        ctx.strokeRect(currentDrawRect.x, currentDrawRect.y, currentDrawRect.width, currentDrawRect.height);
+        ctx.fillRect(
+          currentDrawRect.x,
+          currentDrawRect.y,
+          currentDrawRect.width,
+          currentDrawRect.height,
+        );
+        ctx.strokeRect(
+          currentDrawRect.x,
+          currentDrawRect.y,
+          currentDrawRect.width,
+          currentDrawRect.height,
+        );
       }
 
       // World boundary
@@ -228,7 +263,9 @@ export function BuilderCanvas({
     const container = containerRef.current;
     if (!container) return;
     const rect = container.getBoundingClientRect();
-    const zoom = Math.min(rect.width / room.map.width, rect.height / room.map.height) * 0.85;
+    const zoom =
+      Math.min(rect.width / room.map.width, rect.height / room.map.height) *
+      0.85;
     setView({
       zoom,
       offsetX: (rect.width - room.map.width * zoom) / 2,
@@ -297,7 +334,11 @@ export function BuilderCanvas({
   function handleMouseDown(e: React.MouseEvent) {
     if (e.button === 1 || (e.button === 0 && e.altKey)) {
       // Middle click or alt+click: pan
-      setDragging({ type: "pan", startX: e.clientX - view.offsetX, startY: e.clientY - view.offsetY });
+      setDragging({
+        type: "pan",
+        startX: e.clientX - view.offsetX,
+        startY: e.clientY - view.offsetY,
+      });
       return;
     }
 
@@ -346,7 +387,11 @@ export function BuilderCanvas({
     } else {
       onSelectObject(null);
       // Start panning
-      setDragging({ type: "pan", startX: e.clientX - view.offsetX, startY: e.clientY - view.offsetY });
+      setDragging({
+        type: "pan",
+        startX: e.clientX - view.offsetX,
+        startY: e.clientY - view.offsetY,
+      });
     }
   }
 
@@ -359,7 +404,11 @@ export function BuilderCanvas({
         offsetX: e.clientX - dragging.startX,
         offsetY: e.clientY - dragging.startY,
       }));
-    } else if (dragging.type === "move" && dragging.objectId && dragging.startObjPos) {
+    } else if (
+      dragging.type === "move" &&
+      dragging.objectId &&
+      dragging.startObjPos
+    ) {
       const dx = (e.clientX - dragging.startX) / view.zoom;
       const dy = (e.clientY - dragging.startY) / view.zoom;
       onUpdateObject(dragging.objectId, {
@@ -368,7 +417,11 @@ export function BuilderCanvas({
           y: Math.round(Math.max(0, dragging.startObjPos.y + dy)),
         },
       });
-    } else if (dragging.type === "resize" && dragging.objectId && dragging.startObjSize) {
+    } else if (
+      dragging.type === "resize" &&
+      dragging.objectId &&
+      dragging.startObjSize
+    ) {
       const dx = (e.clientX - dragging.startX) / view.zoom;
       const dy = (e.clientY - dragging.startY) / view.zoom;
       onUpdateObject(dragging.objectId, {
@@ -383,12 +436,22 @@ export function BuilderCanvas({
       const y = Math.min(dragging.drawStart.y, currentWorld.y);
       const width = Math.abs(currentWorld.x - dragging.drawStart.x);
       const height = Math.abs(currentWorld.y - dragging.drawStart.y);
-      setDrawRect({ x: Math.round(x), y: Math.round(y), width: Math.round(width), height: Math.round(height) });
+      setDrawRect({
+        x: Math.round(x),
+        y: Math.round(y),
+        width: Math.round(width),
+        height: Math.round(height),
+      });
     }
   }
 
   function handleMouseUp() {
-    if (dragging?.type === "draw-collision" && drawRect && drawRect.width > 8 && drawRect.height > 8) {
+    if (
+      dragging?.type === "draw-collision" &&
+      drawRect &&
+      drawRect.width > 8 &&
+      drawRect.height > 8
+    ) {
       onAddCollisionZone({
         id: `zone-${crypto.randomUUID().slice(0, 8)}`,
         bounds: drawRect,
@@ -443,7 +506,14 @@ export function BuilderCanvas({
     <div
       ref={containerRef}
       className="w-full h-full overflow-hidden cursor-crosshair"
-      style={{ cursor: tool === "select" ? (dragging?.type === "pan" ? "grabbing" : "default") : "crosshair" }}
+      style={{
+        cursor:
+          tool === "select"
+            ? dragging?.type === "pan"
+              ? "grabbing"
+              : "default"
+            : "crosshair",
+      }}
     >
       <canvas
         ref={canvasRef}

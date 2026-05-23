@@ -31,7 +31,9 @@ export function MapSettings({
         </label>
         <div className="grid grid-cols-2 gap-2">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[10px] text-muted-foreground/70">W</span>
+            <span className="font-mono text-[10px] text-muted-foreground/70">
+              W
+            </span>
             <input
               type="number"
               value={map.width}
@@ -41,7 +43,9 @@ export function MapSettings({
             />
           </div>
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[10px] text-muted-foreground/70">H</span>
+            <span className="font-mono text-[10px] text-muted-foreground/70">
+              H
+            </span>
             <input
               type="number"
               value={map.height}
@@ -81,23 +85,37 @@ export function MapSettings({
         </label>
         <div className="grid grid-cols-2 gap-2">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[10px] text-muted-foreground/70">X</span>
+            <span className="font-mono text-[10px] text-muted-foreground/70">
+              X
+            </span>
             <input
               type="number"
               value={Math.round(map.playerSpawn.x)}
               onChange={(e) =>
-                onUpdateMap({ playerSpawn: { ...map.playerSpawn, x: Number(e.target.value) } })
+                onUpdateMap({
+                  playerSpawn: {
+                    ...map.playerSpawn,
+                    x: Number(e.target.value),
+                  },
+                })
               }
               className="w-full bg-accent border border-border px-2 py-1.5 text-xs font-mono text-foreground outline-none focus:border-primary"
             />
           </div>
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[10px] text-muted-foreground/70">Y</span>
+            <span className="font-mono text-[10px] text-muted-foreground/70">
+              Y
+            </span>
             <input
               type="number"
               value={Math.round(map.playerSpawn.y)}
               onChange={(e) =>
-                onUpdateMap({ playerSpawn: { ...map.playerSpawn, y: Number(e.target.value) } })
+                onUpdateMap({
+                  playerSpawn: {
+                    ...map.playerSpawn,
+                    y: Number(e.target.value),
+                  },
+                })
               }
               className="w-full bg-accent border border-border px-2 py-1.5 text-xs font-mono text-foreground outline-none focus:border-primary"
             />
@@ -130,7 +148,9 @@ export function MapSettings({
         <input
           type="number"
           value={player.interactionReach}
-          onChange={(e) => onUpdatePlayer({ interactionReach: Number(e.target.value) })}
+          onChange={(e) =>
+            onUpdatePlayer({ interactionReach: Number(e.target.value) })
+          }
           step={5}
           className="w-full bg-accent border border-border px-2 py-1.5 text-xs font-mono text-foreground outline-none focus:border-primary"
         />

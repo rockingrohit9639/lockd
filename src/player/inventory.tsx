@@ -1,5 +1,4 @@
-import { hasSprite, ObjectSprite } from "../shared/object-sprites";
-import { getObjectDef } from "../shared/objects";
+import { SpriteIcon } from "../shared/sprite-icon";
 import type { Room } from "../shared/types";
 
 interface InventoryProps {
@@ -31,7 +30,6 @@ export function Inventory({
         )}
         {items.map((itemId) => {
           const obj = room.objects.find((o) => o.id === itemId);
-          const def = obj ? getObjectDef(obj.type) : undefined;
           const isSelected = selectedItem === itemId;
 
           return (
@@ -45,14 +43,7 @@ export function Inventory({
               }`}
             >
               <div className="w-8 h-8 shrink-0 flex items-center justify-center">
-                {obj && hasSprite(obj.type) ? (
-                  <ObjectSprite type={obj.type} width={24} height={24} />
-                ) : (
-                  <div
-                    className="w-5 h-5"
-                    style={{ backgroundColor: def?.color ?? "#666" }}
-                  />
-                )}
+                {obj && <SpriteIcon type={obj.type} width={24} height={24} />}
               </div>
               <span
                 className={`font-mono text-xs ${isSelected ? "text-primary" : "text-foreground/70"}`}

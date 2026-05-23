@@ -139,7 +139,9 @@ export function PropertiesPanel({
         <input
           type="number"
           value={object.interactionRadius}
-          onChange={(e) => onUpdate({ interactionRadius: Number(e.target.value) })}
+          onChange={(e) =>
+            onUpdate({ interactionRadius: Number(e.target.value) })
+          }
           step={5}
           className="w-full bg-accent border border-border px-2 py-1.5 text-xs font-mono text-foreground outline-none focus:border-primary"
         />
@@ -189,7 +191,12 @@ export function PropertiesPanel({
             onChange={(e) =>
               onUpdate({
                 collision: e.target.checked
-                  ? { x: object.position.x, y: object.position.y, width: object.size.width, height: object.size.height }
+                  ? {
+                      x: object.position.x,
+                      y: object.position.y,
+                      width: object.size.width,
+                      height: object.size.height,
+                    }
                   : null,
               })
             }

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { type GameEngine, createGameEngine } from "../engine/game-loop";
+import { createGameEngine, type GameEngine } from "../engine/game-loop";
 import type { GameState, Room } from "../shared/types";
 
 interface GameCanvasProps {

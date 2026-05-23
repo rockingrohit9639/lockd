@@ -1,5 +1,5 @@
-import { hasSprite, ObjectSprite } from "../shared/object-sprites";
 import { OBJECT_CATALOG, type ObjectDefinition } from "../shared/objects";
+import { SpriteIcon } from "../shared/sprite-icon";
 import type { RoomObject } from "../shared/types";
 
 interface ObjectPaletteProps {
@@ -63,14 +63,7 @@ export function ObjectPalette({ onAddObject }: ObjectPaletteProps) {
                   className="w-full flex items-center gap-2 px-2 py-1.5 text-left hover:bg-accent transition-colors group"
                 >
                   <div className="w-6 h-6 shrink-0 flex items-center justify-center">
-                    {hasSprite(def.type) ? (
-                      <ObjectSprite type={def.type} width={20} height={20} />
-                    ) : (
-                      <div
-                        className="w-4 h-4 border border-border group-hover:border-foreground/30"
-                        style={{ backgroundColor: def.color }}
-                      />
-                    )}
+                    <SpriteIcon type={def.type} width={20} height={20} />
                   </div>
                   <span className="text-xs text-foreground/60 group-hover:text-foreground transition-colors truncate">
                     {def.name}

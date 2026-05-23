@@ -1,9 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Game } from "../player/game";
-import type { CollisionZone, PlayerConfig, Room, RoomObject, Trigger, Vec2 } from "../shared/types";
+import type {
+  CollisionZone,
+  PlayerConfig,
+  Room,
+  RoomObject,
+  Trigger,
+  Vec2,
+} from "../shared/types";
 import { downloadRoom, importRoom, saveRoom } from "../storage/room-storage";
-import { type BuilderTool, BuilderCanvas } from "./builder-canvas";
+import { BuilderCanvas, type BuilderTool } from "./builder-canvas";
 import { MapSettings } from "./map-settings";
 import { ObjectPalette } from "./object-palette";
 import { PropertiesPanel } from "./properties-panel";
@@ -95,7 +102,10 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
     // Place at center of map
     const centeredObj = {
       ...obj,
-      position: { x: room.map.width / 2 - obj.size.width / 2, y: room.map.height / 2 - obj.size.height / 2 },
+      position: {
+        x: room.map.width / 2 - obj.size.width / 2,
+        y: room.map.height / 2 - obj.size.height / 2,
+      },
     };
     setRoom((r) => ({ ...r, objects: [...r.objects, centeredObj] }));
     setSelectedObjectId(centeredObj.id);
@@ -140,7 +150,10 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
   function updateSpawn(pos: Vec2) {
     setRoom((r) => ({
       ...r,
-      map: { ...r.map, playerSpawn: { x: Math.round(pos.x), y: Math.round(pos.y) } },
+      map: {
+        ...r.map,
+        playerSpawn: { x: Math.round(pos.x), y: Math.round(pos.y) },
+      },
     }));
     setTool("select");
   }

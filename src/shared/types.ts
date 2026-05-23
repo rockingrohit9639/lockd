@@ -1,7 +1,3 @@
-// ─── Legacy (remove in Phase 4 builder rewrite) ───
-
-export type Direction = "north" | "east" | "south" | "west";
-
 // ─── Geometry Primitives ───
 
 export interface Vec2 {
@@ -100,8 +96,6 @@ export interface RoomObject {
   interactionRadius: number;
   spriteUrl?: string;
   properties: Record<string, unknown>;
-  /** @deprecated Legacy field for old builder — remove in Phase 4 */
-  view?: Direction;
 }
 
 // ─── Triggers ───

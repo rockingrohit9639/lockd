@@ -221,7 +221,7 @@ function NewTriggerForm({
         >
           {room.objects.map((obj) => (
             <option key={obj.id} value={obj.id}>
-              {obj.name} ({obj.view})
+              {obj.name}
             </option>
           ))}
         </select>
