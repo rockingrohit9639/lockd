@@ -26,6 +26,7 @@ import {
 } from "./input";
 import { findNearestInteractable } from "./proximity";
 import { type RenderContext, render } from "./renderer";
+import { sfx } from "./audio";
 import { preloadSprites } from "./sprite-cache";
 
 export interface GameEngine {
@@ -38,6 +39,7 @@ export interface GameEngine {
   triggerWin: () => void;
   triggerFail: () => void;
   triggerPickup: (x: number, y: number, label: string) => void;
+  objectAtScreen: (screenX: number, screenY: number) => string | null;
 }
 
 export function createGameEngine(
@@ -54,6 +56,8 @@ export function createGameEngine(
   let animFrameId: number | null = null;
   let lastTime = 0;
   let interactCallback: ((objectId: string) => void) | null = null;
+  let footstepTimer = 0;
+  const FOOTSTEP_INTERVAL = 0.28;
 
   const detachInput = attachInputListeners(input);
 
@@ -144,8 +148,20 @@ export function createGameEngine(
     );
     state = { ...state, nearbyObjectId };
 
+    // Footstep audio
+    if (isMoving) {
+      footstepTimer += dt;
+      if (footstepTimer >= FOOTSTEP_INTERVAL) {
+        footstepTimer = 0;
+        sfx.footstep();
+      }
+    } else {
+      footstepTimer = 0;
+    }
+
     // Handle interaction
     if (consumeInteract(input) && nearbyObjectId && interactCallback) {
+      sfx.interact();
       interactCallback(nearbyObjectId);
     }
 
@@ -246,12 +262,34 @@ export function createGameEngine(
     },
     triggerWin() {
       effects = triggerWinParticles(effects, state.player.position.x, state.player.position.y);
+      sfx.win();
     },
     triggerFail() {
       effects = triggerFailShake(effects);
+      sfx.fail();
     },
     triggerPickup(x: number, y: number, label: string) {
       effects = triggerPickup(effects, x, y, label);
+      sfx.pickup();
+    },
+    objectAtScreen(screenX: number, screenY: number): string | null {
+      const worldX = screenX + camera.x;
+      const worldY = screenY + camera.y;
+      for (const obj of room.objects) {
+        if (state.hiddenObjects.has(obj.id)) continue;
+        if (obj.interactionRadius <= 0) continue;
+        const ox = obj.position.x;
+        const oy = obj.position.y;
+        if (
+          worldX >= ox &&
+          worldX <= ox + obj.size.width &&
+          worldY >= oy &&
+          worldY <= oy + obj.size.height
+        ) {
+          return obj.id;
+        }
+      }
+      return null;
     },
   };
 }

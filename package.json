@@ -38,6 +38,7 @@
     "@tanstack/react-query": "^5.100.13",
     "@tanstack/react-router": "^1.170.6",
     "@tanstack/react-start": "^1.168.9",
+    "@web-kits/audio": "^0.1.0",
     "better-auth": "^1.6.11",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

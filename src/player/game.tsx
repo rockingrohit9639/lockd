@@ -2,12 +2,12 @@ import { useCallback, useRef, useState } from "react";
 import { Button } from "~/components/ui/button";
 import type { GameState, Room } from "../shared/types";
 import { GameCanvas } from "./game-canvas";
+import { HudInventory } from "./hud-inventory";
 import {
   handleInteract,
   handleUseItemOn,
   initializeState,
 } from "./interaction-engine";
-import { Inventory } from "./inventory";
 import { MemePlayer } from "./meme-player";
 
 interface GameProps {
@@ -52,50 +52,64 @@ export function Game({ room, onExit }: GameProps) {
   }, []);
 
   return (
-    <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
-      {/* Header */}
-      <header className="border-b border-border px-4 py-3 flex items-center justify-between shrink-0">
-        <Button
-          variant="ghost"
-          onClick={onExit}
-          className="font-mono text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground rounded-none px-3 py-1 h-auto"
-        >
-          ← Exit
-        </Button>
-        <span className="font-mono text-sm font-bold">{room.name}</span>
-        <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
-          WASD to move · E to interact
-        </span>
-      </header>
+    <div className="fixed inset-0 z-50 bg-black">
+      {/* Fullscreen canvas */}
+      <GameCanvas
+        room={room}
+        initialState={state}
+        onStateChange={onStateChange}
+        onInteract={onInteract}
+        hasSelectedItem={!!selectedItem}
+      />
 
-      {/* Main: Canvas + Inventory sidebar */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Game canvas */}
-        <div className="flex-1 relative">
-          <GameCanvas
-            room={room}
-            initialState={state}
-            onStateChange={onStateChange}
-            onInteract={onInteract}
-          />
+      {/* HUD Layer */}
+      <div className="absolute inset-0 pointer-events-none">
+        {/* Top bar */}
+        <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-4">
+          <Button
+            variant="ghost"
+            onClick={onExit}
+            className="pointer-events-auto font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white hover:bg-white/10 rounded-none px-3 py-1.5 h-auto backdrop-blur-sm bg-black/30 border border-white/10"
+          >
+            ← Exit
+          </Button>
+          <span className="font-mono text-[10px] uppercase tracking-widest text-white/40 backdrop-blur-sm bg-black/30 px-3 py-1.5 border border-white/10">
+            {room.name}
+          </span>
         </div>
 
-        {/* Inventory sidebar */}
-        <aside className="w-56 shrink-0">
-          <Inventory
+        {/* Controls hint — bottom left */}
+        <div className="absolute bottom-4 left-4">
+          <span className="font-mono text-[9px] uppercase tracking-widest text-white/30">
+            WASD move · E interact
+          </span>
+        </div>
+
+        {/* Inventory hotbar — bottom center */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 pointer-events-auto">
+          <HudInventory
             items={state.inventory}
             room={room}
             selectedItem={selectedItem}
             onSelectItem={setSelectedItem}
           />
-        </aside>
+        </div>
+
+        {/* Selected item hint */}
+        {selectedItem && (
+          <div className="absolute bottom-20 left-1/2 -translate-x-1/2">
+            <span className="font-mono text-[10px] text-emerald-400 uppercase tracking-widest animate-pulse">
+              Click or press E near an object to use
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Win/Fail overlay */}
       {state.solved && <WinScreen onExit={onExit} />}
       {state.failed && <FailScreen onExit={onExit} />}
 
-{/* Meme overlay */}
+      {/* Meme overlay */}
       {state.activeMeme && (
         <MemePlayer memeId={state.activeMeme} onDismiss={dismissMeme} />
       )}
@@ -105,17 +119,15 @@ export function Game({ room, onExit }: GameProps) {
 
 function WinScreen({ onExit }: { onExit: () => void }) {
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+    <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/80 backdrop-blur-sm">
       <div className="text-center space-y-6">
-        <h2 className="font-mono text-5xl font-bold text-primary uppercase tracking-widest">
+        <h2 className="font-mono text-5xl font-bold text-emerald-400 uppercase tracking-widest">
           Escaped
         </h2>
-        <p className="font-mono text-sm text-muted-foreground">
-          you made it out
-        </p>
+        <p className="font-mono text-sm text-white/50">you made it out</p>
         <Button
           onClick={onExit}
-          className="bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest font-bold rounded-none hover:bg-primary/90 px-6 py-2"
+          className="pointer-events-auto bg-emerald-500 text-black font-mono text-xs uppercase tracking-widest font-bold rounded-none hover:bg-emerald-400 px-6 py-2"
         >
           Done
         </Button>
@@ -126,16 +138,16 @@ function WinScreen({ onExit }: { onExit: () => void }) {
 
 function FailScreen({ onExit }: { onExit: () => void }) {
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+    <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/80 backdrop-blur-sm">
       <div className="text-center space-y-6">
         <h2 className="font-mono text-5xl font-bold text-red-500 uppercase tracking-widest">
           Failed
         </h2>
-        <p className="font-mono text-sm text-muted-foreground">skill issue</p>
+        <p className="font-mono text-sm text-white/50">skill issue</p>
         <Button
           variant="ghost"
           onClick={onExit}
-          className="font-mono text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground rounded-none px-6 py-2 border border-border"
+          className="pointer-events-auto font-mono text-xs uppercase tracking-widest text-white/60 hover:text-white rounded-none px-6 py-2 border border-white/20"
         >
           Exit
         </Button>

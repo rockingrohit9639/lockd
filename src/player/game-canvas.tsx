@@ -7,6 +7,7 @@ interface GameCanvasProps {
   initialState: GameState;
   onStateChange: (state: GameState) => void;
   onInteract: (objectId: string, engineState: GameState) => GameState | void;
+  hasSelectedItem?: boolean;
 }
 
 export function GameCanvas({
@@ -14,12 +15,15 @@ export function GameCanvas({
   initialState,
   onStateChange,
   onInteract,
+  hasSelectedItem,
 }: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<GameEngine | null>(null);
   const onInteractRef = useRef(onInteract);
   onInteractRef.current = onInteract;
+  const hasSelectedItemRef = useRef(hasSelectedItem);
+  hasSelectedItemRef.current = hasSelectedItem;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -60,6 +64,39 @@ export function GameCanvas({
       }
     });
 
+    const handleCanvasClick = (e: MouseEvent) => {
+      if (!hasSelectedItemRef.current) return;
+      const rect = canvas.getBoundingClientRect();
+      const screenX = e.clientX - rect.left;
+      const screenY = e.clientY - rect.top;
+      const objectId = engine.objectAtScreen(screenX, screenY);
+      if (objectId) {
+        const currentState = engine.getState();
+        const newState = onInteractRef.current(objectId, currentState);
+        if (newState) {
+          const addedItems = newState.inventory.filter(
+            (id) => !currentState.inventory.includes(id),
+          );
+          if (addedItems.length > 0) {
+            newState.activeMessage = null;
+            newState.messageSourceId = null;
+            for (const itemId of addedItems) {
+              const obj = room.objects.find((o) => o.id === itemId);
+              if (obj) {
+                const cx = obj.position.x + obj.size.width / 2;
+                const cy = obj.position.y;
+                engine.triggerPickup(cx, cy, obj.name);
+              }
+            }
+          }
+          engine.setState(newState);
+          if (newState.solved && !currentState.solved) engine.triggerWin();
+          if (newState.failed && !currentState.failed) engine.triggerFail();
+        }
+      }
+    };
+    canvas.addEventListener("click", handleCanvasClick);
+
     engine.start();
 
     const syncInterval = setInterval(() => {
@@ -78,6 +115,7 @@ export function GameCanvas({
 
     return () => {
       engine.stop();
+      canvas.removeEventListener("click", handleCanvasClick);
       resizeObserver.disconnect();
       clearInterval(syncInterval);
       engineRef.current = null;
@@ -86,7 +124,10 @@ export function GameCanvas({
 
   return (
     <div ref={containerRef} className="w-full h-full">
-      <canvas ref={canvasRef} className="block w-full h-full" />
+      <canvas
+        ref={canvasRef}
+        className={`block w-full h-full ${hasSelectedItem ? "cursor-crosshair" : ""}`}
+      />
     </div>
   );
 }
