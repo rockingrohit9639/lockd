@@ -11,8 +11,8 @@ import type {
 } from "../shared/types";
 import { downloadRoom, importRoom, saveRoom } from "../storage/room-storage";
 import { BuilderCanvas, type BuilderTool } from "./builder-canvas";
+import { CommandPalette } from "./command-palette";
 import { MapSettings } from "./map-settings";
-import { ObjectPalette } from "./object-palette";
 import { PropertiesPanel } from "./properties-panel";
 import { TriggerBuilder } from "./trigger-builder";
 import { useHistory } from "./use-history";
@@ -54,6 +54,7 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
   const [tool, setTool] = useState<BuilderTool>("select");
   const [previewing, setPreviewing] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -66,6 +67,13 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
   // Global keyboard shortcuts
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
+      // Cmd+K opens palette (works even from inputs)
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+        return;
+      }
+
       const target = e.target as HTMLElement;
       if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
 
@@ -183,6 +191,13 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
     setRoom((r) => ({ ...r, triggers: [...r.triggers, trigger] }));
   }
 
+  function updateTrigger(trigger: Trigger) {
+    setRoom((r) => ({
+      ...r,
+      triggers: r.triggers.map((t) => (t.id === trigger.id ? trigger : t)),
+    }));
+  }
+
   function deleteTrigger(id: string) {
     setRoom((r) => ({ ...r, triggers: r.triggers.filter((t) => t.id !== id) }));
   }
@@ -211,6 +226,10 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
 
   function updateMap(updates: Partial<Room["map"]>) {
     setRoom((r) => ({ ...r, map: { ...r.map, ...updates } }));
+  }
+
+  function setBackground(color: string) {
+    setRoom((r) => ({ ...r, map: { ...r.map, backgroundColor: color } }));
   }
 
   function updatePlayer(updates: Partial<PlayerConfig>) {
@@ -250,6 +269,14 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
 
         {/* Tool selector + undo/redo */}
         <div className="flex items-center gap-1">
+          <button
+            onClick={() => setPaletteOpen(true)}
+            title="Add object (Cmd+K)"
+            className="font-mono text-xs px-2.5 py-1.5 text-primary hover:bg-primary/10 transition-colors"
+          >
+            + Add
+          </button>
+          <div className="h-4 w-px bg-accent mx-1" />
           <button
             onClick={undo}
             title="Undo (Ctrl+Z)"
@@ -317,14 +344,9 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
         </div>
       </header>
 
-      {/* Main area — 3 panels */}
+      {/* Main area */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left: Object Palette */}
-        <aside className="w-56 border-r border-border overflow-y-auto shrink-0">
-          <ObjectPalette onAddObject={addObject} />
-        </aside>
-
-        {/* Center: Canvas */}
+        {/* Canvas */}
         <main className="flex-1 overflow-hidden bg-muted">
           <BuilderCanvas
             room={room}
@@ -392,6 +414,7 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
               <TriggerBuilder
                 room={room}
                 onAddTrigger={addTrigger}
+                onUpdateTrigger={updateTrigger}
                 onDeleteTrigger={deleteTrigger}
               />
             ) : (
@@ -414,6 +437,13 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
         accept=".json,.lockd.json"
         onChange={handleFileChange}
         className="hidden"
+      />
+
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        onAddObject={addObject}
+        onSetBackground={setBackground}
       />
     </div>
   );
