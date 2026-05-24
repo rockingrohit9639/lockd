@@ -12,7 +12,9 @@ import type {
 import { downloadRoom, importRoom, saveRoom } from "../storage/room-storage";
 import { BuilderCanvas, type BuilderTool } from "./builder-canvas";
 import { CommandPalette } from "./command-palette";
+import { LayerPanel } from "./layer-panel";
 import { MapSettings } from "./map-settings";
+import { Minimap } from "./minimap";
 import { PropertiesPanel } from "./properties-panel";
 import { TriggerBuilder } from "./trigger-builder";
 import { useHistory } from "./use-history";
@@ -22,7 +24,7 @@ interface BuilderProps {
   onExit: () => void;
 }
 
-type RightPanel = "properties" | "triggers" | "map";
+type RightPanel = "properties" | "layers" | "triggers" | "map";
 
 function createEmptyRoom(): Room {
   return {
@@ -55,6 +57,8 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
   const [previewing, setPreviewing] = useState(false);
   const [saved, setSaved] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [viewport, setViewport] = useState({ x: 0, y: 0, width: 800, height: 600, zoom: 0.5 });
+  const [navigateTarget, setNavigateTarget] = useState<{ x: number; y: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -236,6 +240,11 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
     setRoom((r) => ({ ...r, player: { ...r.player, ...updates } }));
   }
 
+  function handleMinimapNavigate(worldX: number, worldY: number) {
+    setNavigateTarget({ x: worldX, y: worldY });
+    setTimeout(() => setNavigateTarget(null), 50);
+  }
+
   if (previewing) {
     return <Game room={room} onExit={() => setPreviewing(false)} />;
   }
@@ -346,8 +355,8 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
 
       {/* Main area */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Canvas */}
-        <main className="flex-1 overflow-hidden bg-muted">
+        {/* Canvas + Minimap */}
+        <main className="flex-1 overflow-hidden bg-muted relative">
           <BuilderCanvas
             room={room}
             selectedObjectId={selectedObjectId}
@@ -359,6 +368,14 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
             onUpdateObject={updateObject}
             onAddCollisionZone={addCollisionZone}
             onUpdateSpawn={updateSpawn}
+            onViewportChange={setViewport}
+            navigateTo={navigateTarget}
+          />
+          <Minimap
+            room={room}
+            selectedObjectId={selectedObjectId}
+            viewport={viewport}
+            onNavigate={handleMinimapNavigate}
           />
         </main>
 
@@ -366,36 +383,19 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
         <aside className="w-80 border-l border-border overflow-y-auto shrink-0 flex flex-col">
           {/* Tab switcher */}
           <div className="flex border-b border-border shrink-0">
-            <button
-              onClick={() => setRightPanel("properties")}
-              className={`flex-1 font-mono text-[10px] uppercase tracking-widest py-3 transition-colors ${
-                rightPanel === "properties"
-                  ? "text-foreground bg-muted border-b border-primary"
-                  : "text-muted-foreground hover:text-muted-foreground"
-              }`}
-            >
-              Properties
-            </button>
-            <button
-              onClick={() => setRightPanel("triggers")}
-              className={`flex-1 font-mono text-[10px] uppercase tracking-widest py-3 transition-colors ${
-                rightPanel === "triggers"
-                  ? "text-foreground bg-muted border-b border-primary"
-                  : "text-muted-foreground hover:text-muted-foreground"
-              }`}
-            >
-              Triggers
-            </button>
-            <button
-              onClick={() => setRightPanel("map")}
-              className={`flex-1 font-mono text-[10px] uppercase tracking-widest py-3 transition-colors ${
-                rightPanel === "map"
-                  ? "text-foreground bg-muted border-b border-primary"
-                  : "text-muted-foreground hover:text-muted-foreground"
-              }`}
-            >
-              Map
-            </button>
+            {(["properties", "layers", "triggers", "map"] as const).map((panel) => (
+              <button
+                key={panel}
+                onClick={() => setRightPanel(panel)}
+                className={`flex-1 font-mono text-[10px] uppercase tracking-widest py-3 transition-colors ${
+                  rightPanel === panel
+                    ? "text-foreground bg-muted border-b border-primary"
+                    : "text-muted-foreground hover:text-muted-foreground"
+                }`}
+              >
+                {panel === "properties" ? "Props" : panel}
+              </button>
+            ))}
           </div>
 
           {/* Panel content */}
@@ -409,6 +409,17 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
                 onDelete={() =>
                   selectedObjectId && deleteObject(selectedObjectId)
                 }
+              />
+            ) : rightPanel === "layers" ? (
+              <LayerPanel
+                room={room}
+                selectedObjectId={selectedObjectId}
+                onSelectObject={(id) => {
+                  setSelectedObjectId(id);
+                  setRightPanel("properties");
+                }}
+                onUpdateObject={updateObject}
+                onDeleteObject={deleteObject}
               />
             ) : rightPanel === "triggers" ? (
               <TriggerBuilder

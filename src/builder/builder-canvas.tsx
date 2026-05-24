@@ -16,6 +16,8 @@ interface BuilderCanvasProps {
   onUpdateObject: (id: string, updates: Partial<RoomObject>) => void;
   onAddCollisionZone: (zone: CollisionZone) => void;
   onUpdateSpawn: (pos: Vec2) => void;
+  onViewportChange?: (viewport: { x: number; y: number; width: number; height: number; zoom: number }) => void;
+  navigateTo?: { x: number; y: number } | null;
 }
 
 export type BuilderTool = "select" | "collision" | "spawn";
@@ -34,6 +36,8 @@ export function BuilderCanvas({
   onUpdateObject,
   onAddCollisionZone,
   onUpdateSpawn,
+  onViewportChange,
+  navigateTo,
 }: BuilderCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -279,6 +283,31 @@ export function BuilderCanvas({
       offsetY: (rect.height - room.map.height * zoom) / 2,
     });
   }, [room.map.width, room.map.height]);
+
+  // Report viewport changes
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !onViewportChange) return;
+    onViewportChange({
+      x: view.offsetX,
+      y: view.offsetY,
+      width: canvas.width,
+      height: canvas.height,
+      zoom: view.zoom,
+    });
+  }, [view, onViewportChange]);
+
+  // Navigate to world position
+  useEffect(() => {
+    if (!navigateTo) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    setView((v) => ({
+      ...v,
+      offsetX: canvas.width / 2 - navigateTo.x * v.zoom,
+      offsetY: canvas.height / 2 - navigateTo.y * v.zoom,
+    }));
+  }, [navigateTo]);
 
   // Mouse wheel zoom
   useEffect(() => {

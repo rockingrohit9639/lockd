@@ -172,7 +172,10 @@ export function createGameEngine(
         const dx = newPos.x - (srcObj.position.x + srcObj.size.width / 2);
         const dy = newPos.y - (srcObj.position.y + srcObj.size.height / 2);
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist > srcObj.interactionRadius + room.player.interactionReach + 30) {
+        if (
+          dist >
+          srcObj.interactionRadius + room.player.interactionReach + 30
+        ) {
           state = { ...state, activeMessage: null, messageSourceId: null };
         }
       }
@@ -261,7 +264,11 @@ export function createGameEngine(
       interactCallback = callback;
     },
     triggerWin() {
-      effects = triggerWinParticles(effects, state.player.position.x, state.player.position.y);
+      effects = triggerWinParticles(
+        effects,
+        state.player.position.x,
+        state.player.position.y,
+      );
       sfx.win();
     },
     triggerFail() {
