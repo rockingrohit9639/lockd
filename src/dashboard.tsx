@@ -3,6 +3,7 @@ import { Button } from "~/components/ui/button";
 import { useDeleteRoom, useRooms } from "~/hooks/rooms/use-rooms";
 import { signOut, useSession } from "~/lib/auth-client";
 
+
 interface DashboardProps {
   onCreateRoom: () => void;
   onEditRoom: (id: string) => void;
@@ -15,8 +16,9 @@ export function Dashboard({
   onPlayRoom,
 }: DashboardProps) {
   const { data: session } = useSession();
-  const { data: rooms, isLoading } = useRooms();
+  const { data: rooms, isLoading, error } = useRooms();
   const deleteRoom = useDeleteRoom();
+  const roomList = rooms ?? [];
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -72,7 +74,33 @@ export function Dashboard({
           </div>
         )}
 
-        {!isLoading && rooms?.length === 0 && (
+        {!isLoading && error && !session && (
+          <div className="border border-dashed border-border py-20 text-center">
+            <p className="font-mono text-sm text-muted-foreground mb-2">
+              Sign in to save and manage your rooms
+            </p>
+            <p className="font-mono text-[10px] text-muted-foreground/60 mb-6">
+              You can still use the builder without an account — rooms save locally
+            </p>
+            <div className="flex items-center justify-center gap-3">
+              <Link
+                to="/login"
+                className="bg-foreground text-background font-mono text-xs uppercase tracking-widest font-bold px-5 py-2.5 hover:bg-foreground/90 transition-colors"
+              >
+                Log in
+              </Link>
+              <Button
+                onClick={onCreateRoom}
+                variant="ghost"
+                className="font-mono text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground rounded-none px-5 py-2.5 border border-border"
+              >
+                Try builder
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {!isLoading && !error && roomList.length === 0 && (
           <div className="border border-dashed border-border py-20 text-center">
             <p className="font-mono text-sm text-muted-foreground mb-4">
               You haven't created any rooms yet
@@ -86,9 +114,9 @@ export function Dashboard({
           </div>
         )}
 
-        {rooms && rooms.length > 0 && (
+        {roomList.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {rooms.map((r) => (
+            {roomList.map((r) => (
               <RoomCard
                 key={r.id}
                 room={r}
