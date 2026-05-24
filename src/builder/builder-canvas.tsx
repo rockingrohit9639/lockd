@@ -53,6 +53,8 @@ export function BuilderCanvas({
   } | null>(null);
   const [drawRect, setDrawRect] = useState<AABB | null>(null);
 
+  const [hoveredObjectId, setHoveredObjectId] = useState<string | null>(null);
+
   const viewRef = useRef(view);
   viewRef.current = view;
   const roomRef = useRef(room);
@@ -61,6 +63,8 @@ export function BuilderCanvas({
   selectedRef.current = selectedObjectId;
   const drawRectRef = useRef(drawRect);
   drawRectRef.current = drawRect;
+  const hoveredRef = useRef(hoveredObjectId);
+  hoveredRef.current = hoveredObjectId;
 
   // Convert screen coords to world coords
   const screenToWorld = useCallback(
@@ -92,6 +96,7 @@ export function BuilderCanvas({
       const v = viewRef.current;
       const currentRoom = roomRef.current;
       const currentSelected = selectedRef.current;
+      const currentHovered = hoveredRef.current;
       const currentDrawRect = drawRectRef.current;
 
       ctx.clearRect(0, 0, canvas!.width, canvas!.height);
@@ -190,11 +195,13 @@ export function BuilderCanvas({
 
         ctx.globalAlpha = 1;
 
-        // Label
-        ctx.fillStyle = "#333";
-        ctx.font = `${11 / v.zoom}px monospace`;
-        ctx.textAlign = "center";
-        ctx.fillText(obj.name, x + w / 2, y - 6 / v.zoom);
+        // Label — only on hover or selected
+        if (obj.id === currentSelected || obj.id === currentHovered) {
+          ctx.fillStyle = "#333";
+          ctx.font = `${11 / v.zoom}px monospace`;
+          ctx.textAlign = "center";
+          ctx.fillText(obj.name, x + w / 2, y - 6 / v.zoom);
+        }
       }
 
       // Player spawn marker
@@ -395,8 +402,15 @@ export function BuilderCanvas({
     }
   }
 
+  function snap(value: number, free: boolean): number {
+    if (free) return Math.round(value);
+    const GRID = 16;
+    return Math.round(value / GRID) * GRID;
+  }
+
   function handleMouseMove(e: React.MouseEvent) {
     if (!dragging) return;
+    const freeMove = e.ctrlKey || e.metaKey;
 
     if (dragging.type === "pan") {
       setView((v) => ({
@@ -413,8 +427,8 @@ export function BuilderCanvas({
       const dy = (e.clientY - dragging.startY) / view.zoom;
       onUpdateObject(dragging.objectId, {
         position: {
-          x: Math.round(Math.max(0, dragging.startObjPos.x + dx)),
-          y: Math.round(Math.max(0, dragging.startObjPos.y + dy)),
+          x: snap(Math.max(0, dragging.startObjPos.x + dx), freeMove),
+          y: snap(Math.max(0, dragging.startObjPos.y + dy), freeMove),
         },
       });
     } else if (
@@ -426,8 +440,8 @@ export function BuilderCanvas({
       const dy = (e.clientY - dragging.startY) / view.zoom;
       onUpdateObject(dragging.objectId, {
         size: {
-          width: Math.max(16, Math.round(dragging.startObjSize.width + dx)),
-          height: Math.max(16, Math.round(dragging.startObjSize.height + dy)),
+          width: snap(Math.max(16, dragging.startObjSize.width + dx), freeMove),
+          height: snap(Math.max(16, dragging.startObjSize.height + dy), freeMove),
         },
       });
     } else if (dragging.type === "draw-collision" && dragging.drawStart) {
@@ -437,10 +451,10 @@ export function BuilderCanvas({
       const width = Math.abs(currentWorld.x - dragging.drawStart.x);
       const height = Math.abs(currentWorld.y - dragging.drawStart.y);
       setDrawRect({
-        x: Math.round(x),
-        y: Math.round(y),
-        width: Math.round(width),
-        height: Math.round(height),
+        x: snap(x, freeMove),
+        y: snap(y, freeMove),
+        width: snap(width, freeMove),
+        height: snap(height, freeMove),
       });
     }
   }
@@ -502,24 +516,41 @@ export function BuilderCanvas({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedObjectId, room.objects, onUpdateObject]);
 
+  const [hoverCursor, setHoverCursor] = useState<string>("default");
+
+  function handleHover(e: React.MouseEvent) {
+    if (dragging) return;
+    if (tool !== "select") {
+      setHoverCursor("crosshair");
+      setHoveredObjectId(null);
+      return;
+    }
+    const worldPos = screenToWorld(e.clientX, e.clientY);
+    if (isOnResizeHandle(worldPos)) {
+      setHoverCursor("nwse-resize");
+    } else {
+      const obj = findObjectAt(worldPos);
+      setHoveredObjectId(obj?.id ?? null);
+      setHoverCursor(obj ? "move" : "default");
+    }
+  }
+
+  const cursor = dragging?.type === "pan" ? "grabbing" : dragging?.type === "move" ? "move" : dragging?.type === "resize" ? "nwse-resize" : hoverCursor;
+
   return (
     <div
       ref={containerRef}
-      className="w-full h-full overflow-hidden cursor-crosshair"
-      style={{
-        cursor:
-          tool === "select"
-            ? dragging?.type === "pan"
-              ? "grabbing"
-              : "default"
-            : "crosshair",
-      }}
+      className="w-full h-full overflow-hidden"
+      style={{ cursor }}
     >
       <canvas
         ref={canvasRef}
         className="block w-full h-full"
         onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
+        onMouseMove={(e) => {
+          handleMouseMove(e);
+          handleHover(e);
+        }}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
       />

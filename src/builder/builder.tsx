@@ -15,6 +15,7 @@ import { MapSettings } from "./map-settings";
 import { ObjectPalette } from "./object-palette";
 import { PropertiesPanel } from "./properties-panel";
 import { TriggerBuilder } from "./trigger-builder";
+import { useHistory } from "./use-history";
 
 interface BuilderProps {
   room?: Room;
@@ -47,7 +48,7 @@ function createEmptyRoom(): Room {
 }
 
 export function Builder({ room: initialRoom, onExit }: BuilderProps) {
-  const [room, setRoom] = useState<Room>(initialRoom ?? createEmptyRoom);
+  const { room, setRoom, undo, redo } = useHistory(initialRoom ?? createEmptyRoom());
   const [selectedObjectId, setSelectedObjectId] = useState<string | null>(null);
   const [rightPanel, setRightPanel] = useState<RightPanel>("properties");
   const [tool, setTool] = useState<BuilderTool>("select");
@@ -61,6 +62,43 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
       return () => clearTimeout(t);
     }
   }, [saved]);
+
+  // Global keyboard shortcuts
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      const target = e.target as HTMLElement;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
+
+      // Undo/Redo
+      if ((e.metaKey || e.ctrlKey) && e.key === "z" && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+        return;
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === "z" && e.shiftKey) {
+        e.preventDefault();
+        redo();
+        return;
+      }
+
+      // Delete selected
+      if ((e.key === "Delete" || e.key === "Backspace") && selectedObjectId) {
+        e.preventDefault();
+        deleteObject(selectedObjectId);
+        return;
+      }
+
+      // Duplicate selected
+      if ((e.metaKey || e.ctrlKey) && e.key === "d" && selectedObjectId) {
+        e.preventDefault();
+        duplicateObject(selectedObjectId);
+        return;
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedObjectId, undo, redo]);
 
   const handleSave = useCallback(() => {
     saveRoom(room);
@@ -126,6 +164,19 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
       objects: r.objects.filter((o) => o.id !== id),
     }));
     setSelectedObjectId(null);
+  }
+
+  function duplicateObject(id: string) {
+    const obj = room.objects.find((o) => o.id === id);
+    if (!obj) return;
+    const newObj: RoomObject = {
+      ...obj,
+      id: `obj-${crypto.randomUUID().slice(0, 8)}`,
+      name: `${obj.name} copy`,
+      position: { x: obj.position.x + 32, y: obj.position.y + 32 },
+    };
+    setRoom((r) => ({ ...r, objects: [...r.objects, newObj] }));
+    setSelectedObjectId(newObj.id);
   }
 
   function addTrigger(trigger: Trigger) {
@@ -197,8 +248,23 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
           />
         </div>
 
-        {/* Tool selector */}
+        {/* Tool selector + undo/redo */}
         <div className="flex items-center gap-1">
+          <button
+            onClick={undo}
+            title="Undo (Ctrl+Z)"
+            className="font-mono text-xs px-2 py-1.5 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30"
+          >
+            ↩
+          </button>
+          <button
+            onClick={redo}
+            title="Redo (Ctrl+Shift+Z)"
+            className="font-mono text-xs px-2 py-1.5 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30"
+          >
+            ↪
+          </button>
+          <div className="h-4 w-px bg-accent mx-1" />
           {tools.map((t) => (
             <button
               key={t.id}
