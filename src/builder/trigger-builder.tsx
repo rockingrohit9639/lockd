@@ -28,8 +28,8 @@ const ACTIONS: { value: ActionType; label: string; color: string }[] = [
   { value: "remove_from_inventory", label: "Remove item", color: "text-orange-500" },
   { value: "show_message", label: "Show message", color: "text-violet-500" },
   { value: "play_meme", label: "Play meme", color: "text-pink-500" },
-  { value: "unlock", label: "Set flag", color: "text-cyan-500" },
-  { value: "lock", label: "Clear flag", color: "text-slate-500" },
+  { value: "set_flag", label: "Set flag", color: "text-cyan-500" },
+  { value: "clear_flag", label: "Clear flag", color: "text-slate-500" },
   { value: "win", label: "Win game", color: "text-emerald-400" },
   { value: "fail", label: "Fail game", color: "text-red-500" },
 ];
@@ -237,6 +237,8 @@ function ActionBadge({ action, room }: { action: Action; room: Room }) {
       break;
     case "unlock":
     case "lock":
+    case "set_flag":
+    case "clear_flag":
       detail = action.flag ?? "?";
       break;
   }
@@ -583,7 +585,7 @@ function ActionRow({
         </select>
       )}
 
-      {(action.type === "unlock" || action.type === "lock") && (
+      {(action.type === "unlock" || action.type === "lock" || action.type === "set_flag" || action.type === "clear_flag") && (
         <input
           type="text"
           value={action.flag ?? ""}

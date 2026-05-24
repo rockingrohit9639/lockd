@@ -113,6 +113,8 @@ export type ActionType =
   | "hide"
   | "unlock"
   | "lock"
+  | "set_flag"
+  | "clear_flag"
   | "add_to_inventory"
   | "remove_from_inventory"
   | "play_meme"

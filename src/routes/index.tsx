@@ -10,7 +10,9 @@ function HomePage() {
 
   return (
     <Home
-      onPlay={() => navigate({ to: "/play", search: { room: undefined } })}
+      onPlay={() =>
+        navigate({ to: "/play", search: { room: "professors-study" } })
+      }
       onBuild={() => navigate({ to: "/build", search: { room: undefined } })}
     />
   );

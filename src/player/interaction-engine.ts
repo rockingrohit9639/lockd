@@ -105,10 +105,12 @@ function applyAction(action: Action, state: GameState): GameState {
       next.failed = true;
       break;
     case "unlock":
+    case "set_flag":
     case "lock":
+    case "clear_flag":
       if (action.flag) {
         next.flags = new Set(state.flags);
-        if (action.type === "unlock") {
+        if (action.type === "unlock" || action.type === "set_flag") {
           next.flags.add(action.flag);
         } else {
           next.flags.delete(action.flag);
