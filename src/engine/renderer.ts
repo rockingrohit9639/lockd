@@ -21,6 +21,8 @@ export interface RenderContext {
   nearbyObjectId: string | null;
   hiddenObjects: Set<string>;
   animation: AnimationState;
+  activeMessage: string | null;
+  messageSourceId: string | null;
   debug: boolean;
 }
 
@@ -35,6 +37,7 @@ export function render(rc: RenderContext): void {
   drawBackground(rc);
   drawScene(rc);
   drawInteractionPrompt(rc);
+  drawMessageBubble(rc);
 
   if (rc.debug) {
     drawDebugCollision(rc);
@@ -200,6 +203,71 @@ function drawInteractionPrompt(rc: RenderContext): void {
   ctx.font = "10px monospace";
   ctx.textAlign = "left";
   ctx.fillText(obj.name, rx + 28, cy + 4);
+  ctx.textAlign = "center";
+}
+
+function drawMessageBubble(rc: RenderContext): void {
+  const { ctx, activeMessage, messageSourceId, objects } = rc;
+  if (!activeMessage || !messageSourceId) return;
+
+  const obj = objects.find((o) => o.id === messageSourceId);
+  if (!obj) return;
+
+  const cx = obj.position.x + obj.size.width / 2;
+  const cy = obj.position.y - 12;
+
+  // Wrap text
+  ctx.font = "11px monospace";
+  const maxWidth = 220;
+  const words = activeMessage.split(" ");
+  const lines: string[] = [];
+  let currentLine = "";
+
+  for (const word of words) {
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    if (ctx.measureText(testLine).width > maxWidth) {
+      if (currentLine) lines.push(currentLine);
+      currentLine = word;
+    } else {
+      currentLine = testLine;
+    }
+  }
+  if (currentLine) lines.push(currentLine);
+
+  const lineHeight = 16;
+  const padX = 12;
+  const padY = 10;
+  const bubbleW = Math.min(maxWidth + padX * 2, Math.max(...lines.map((l) => ctx.measureText(l).width)) + padX * 2);
+  const bubbleH = lines.length * lineHeight + padY * 2;
+  const bx = cx - bubbleW / 2;
+  const by = cy - bubbleH - 8;
+
+  // Bubble background
+  ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
+  ctx.fillRect(bx, by, bubbleW, bubbleH);
+
+  // Border
+  ctx.strokeStyle = "rgba(0, 0, 0, 0.15)";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(bx, by, bubbleW, bubbleH);
+
+  // Triangle pointer
+  ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
+  ctx.beginPath();
+  ctx.moveTo(cx - 6, by + bubbleH);
+  ctx.lineTo(cx, by + bubbleH + 6);
+  ctx.lineTo(cx + 6, by + bubbleH);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Text
+  ctx.fillStyle = "#1a1a1a";
+  ctx.textAlign = "center";
+  ctx.font = "11px monospace";
+  for (let i = 0; i < lines.length; i++) {
+    ctx.fillText(lines[i], cx, by + padY + (i + 1) * lineHeight - 4);
+  }
   ctx.textAlign = "center";
 }
 

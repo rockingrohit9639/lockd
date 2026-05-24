@@ -174,6 +174,7 @@ export interface GameState {
   solved: boolean;
   failed: boolean;
   activeMessage: string | null;
+  messageSourceId: string | null;
   activeMeme: string | null;
   nearbyObjectId: string | null;
 }

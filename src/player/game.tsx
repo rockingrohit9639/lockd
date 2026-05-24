@@ -51,10 +51,6 @@ export function Game({ room, onExit }: GameProps) {
     setState((s) => ({ ...s, activeMeme: null }));
   }, []);
 
-  const dismissMessage = useCallback(() => {
-    setState((s) => ({ ...s, activeMessage: null }));
-  }, []);
-
   return (
     <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
       {/* Header */}
@@ -99,22 +95,7 @@ export function Game({ room, onExit }: GameProps) {
       {state.solved && <WinScreen onExit={onExit} />}
       {state.failed && <FailScreen onExit={onExit} />}
 
-      {/* Message overlay */}
-      {state.activeMessage && (
-        <div
-          className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 cursor-pointer backdrop-blur-sm"
-          onClick={dismissMessage}
-        >
-          <div className="border border-border bg-background px-8 py-6 max-w-md text-center space-y-3">
-            <p className="font-mono text-sm">{state.activeMessage}</p>
-            <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
-              click to dismiss
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Meme overlay */}
+{/* Meme overlay */}
       {state.activeMeme && (
         <MemePlayer memeId={state.activeMeme} onDismiss={dismissMeme} />
       )}

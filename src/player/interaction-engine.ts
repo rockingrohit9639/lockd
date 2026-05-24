@@ -28,6 +28,7 @@ export function initializeState(room: Room): GameState {
     solved: false,
     failed: false,
     activeMessage: null,
+    messageSourceId: null,
     activeMeme: null,
     nearbyObjectId: null,
   };
@@ -125,7 +126,11 @@ export function handleInteract(
   state: GameState,
 ): GameState {
   const triggers = findTriggers(room, "interact", objectId);
-  return executeTriggers(triggers, state);
+  const result = executeTriggers(triggers, state);
+  if (result.activeMessage && result.activeMessage !== state.activeMessage) {
+    result.messageSourceId = objectId;
+  }
+  return result;
 }
 
 export function handleUseItemOn(
@@ -140,7 +145,11 @@ export function handleUseItemOn(
       t.sourceId === targetId &&
       t.itemId === itemId,
   );
-  return executeTriggers(triggers, state);
+  const result = executeTriggers(triggers, state);
+  if (result.activeMessage && result.activeMessage !== state.activeMessage) {
+    result.messageSourceId = targetId;
+  }
+  return result;
 }
 
 function findTriggers(room: Room, event: string, sourceId: string): Trigger[] {

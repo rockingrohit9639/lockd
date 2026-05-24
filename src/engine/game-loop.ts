@@ -146,6 +146,19 @@ export function createGameEngine(
       interactCallback(nearbyObjectId);
     }
 
+    // Auto-dismiss message when player moves far from source object
+    if (state.activeMessage && state.messageSourceId) {
+      const srcObj = room.objects.find((o) => o.id === state.messageSourceId);
+      if (srcObj) {
+        const dx = newPos.x - (srcObj.position.x + srcObj.size.width / 2);
+        const dy = newPos.y - (srcObj.position.y + srcObj.size.height / 2);
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > srcObj.interactionRadius + room.player.interactionReach + 30) {
+          state = { ...state, activeMessage: null, messageSourceId: null };
+        }
+      }
+    }
+
     // Update camera
     camera = updateCamera(camera, newPos, room.map.width, room.map.height, dt);
   }
@@ -171,6 +184,8 @@ export function createGameEngine(
       nearbyObjectId: state.nearbyObjectId,
       hiddenObjects: state.hiddenObjects,
       animation,
+      activeMessage: state.activeMessage,
+      messageSourceId: state.messageSourceId,
       debug: false,
     };
 
