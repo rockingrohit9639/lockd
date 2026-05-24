@@ -1,5 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { Dashboard } from "~/dashboard";
+import { useSession } from "~/lib/auth-client";
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
@@ -7,6 +9,15 @@ export const Route = createFileRoute("/dashboard")({
 
 function DashboardPage() {
   const navigate = useNavigate();
+  const { data: session, isPending } = useSession();
+
+  useEffect(() => {
+    if (!isPending && !session) {
+      navigate({ to: "/login" });
+    }
+  }, [isPending, session, navigate]);
+
+  if (isPending || !session) return null;
 
   return (
     <Dashboard
