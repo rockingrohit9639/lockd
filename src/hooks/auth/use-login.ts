@@ -10,6 +10,6 @@ export function useLogin() {
       const { error } = await signIn.email(data);
       if (error) throw new Error(error.message ?? "Invalid credentials");
     },
-    onSuccess: () => navigate({ to: "/build" }),
+    onSuccess: () => navigate({ to: "/dashboard" }),
   });
 }

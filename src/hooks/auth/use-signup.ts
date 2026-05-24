@@ -14,6 +14,6 @@ export function useSignup() {
       const { error } = await signUp.email(data);
       if (error) throw new Error(error.message ?? "Something went wrong");
     },
-    onSuccess: () => navigate({ to: "/build" }),
+    onSuccess: () => navigate({ to: "/dashboard" }),
   });
 }

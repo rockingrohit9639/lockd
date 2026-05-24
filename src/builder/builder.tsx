@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "~/components/ui/button";
+import { useSaveRoom } from "~/hooks/rooms/use-rooms";
 import { Game } from "../player/game";
 import type {
   CollisionZone,
@@ -112,10 +113,13 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedObjectId, undo, redo]);
 
+  const saveToServer = useSaveRoom();
+
   const handleSave = useCallback(() => {
     saveRoom(room);
+    saveToServer.mutate(room);
     setSaved(true);
-  }, [room]);
+  }, [room, saveToServer]);
 
   const handleExport = useCallback(() => {
     downloadRoom(room);
