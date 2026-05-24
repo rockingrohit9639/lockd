@@ -15,13 +15,34 @@ export interface ScreenShake {
   elapsed: number;
 }
 
+export interface PickupAnimation {
+  x: number;
+  y: number;
+  label: string;
+  life: number;
+  maxLife: number;
+}
+
 export interface EffectsState {
   particles: Particle[];
   shake: ScreenShake | null;
+  pickups: PickupAnimation[];
 }
 
 export function createEffectsState(): EffectsState {
-  return { particles: [], shake: null };
+  return { particles: [], shake: null, pickups: [] };
+}
+
+export function triggerPickup(
+  effects: EffectsState,
+  x: number,
+  y: number,
+  label: string,
+): EffectsState {
+  return {
+    ...effects,
+    pickups: [...effects.pickups, { x, y, label, life: 1.2, maxLife: 1.2 }],
+  };
 }
 
 export function triggerWinParticles(
@@ -78,7 +99,12 @@ export function updateEffects(effects: EffectsState, dt: number): EffectsState {
     }
   }
 
-  return { particles, shake };
+  // Update pickups
+  const pickups = effects.pickups
+    .map((p) => ({ ...p, life: p.life - dt }))
+    .filter((p) => p.life > 0);
+
+  return { particles, shake, pickups };
 }
 
 export function getShakeOffset(shake: ScreenShake | null): { x: number; y: number } {
@@ -90,6 +116,37 @@ export function getShakeOffset(shake: ScreenShake | null): { x: number; y: numbe
     x: (Math.random() - 0.5) * 2 * intensity,
     y: (Math.random() - 0.5) * 2 * intensity,
   };
+}
+
+export function renderPickups(
+  ctx: CanvasRenderingContext2D,
+  pickups: PickupAnimation[],
+): void {
+  for (const p of pickups) {
+    const progress = 1 - p.life / p.maxLife;
+    const alpha = 1 - progress;
+    const yOffset = progress * 40;
+
+    ctx.globalAlpha = alpha;
+    ctx.font = "bold 11px monospace";
+    ctx.textAlign = "center";
+
+    // Background pill
+    const metrics = ctx.measureText(p.label);
+    const padX = 8;
+    const padY = 4;
+    const w = metrics.width + padX * 2;
+    const h = 14 + padY * 2;
+
+    ctx.fillStyle = "rgba(34, 197, 94, 0.9)";
+    ctx.fillRect(p.x - w / 2, p.y - yOffset - h / 2, w, h);
+
+    // Text
+    ctx.fillStyle = "#fff";
+    ctx.fillText(p.label, p.x, p.y - yOffset + 4);
+  }
+  ctx.globalAlpha = 1;
+  ctx.textAlign = "center";
 }
 
 export function renderParticles(

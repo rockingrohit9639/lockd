@@ -11,7 +11,9 @@ import {
   createEffectsState,
   getShakeOffset,
   renderParticles,
+  renderPickups,
   triggerFailShake,
+  triggerPickup,
   triggerWinParticles,
   updateEffects,
 } from "./effects";
@@ -35,6 +37,7 @@ export interface GameEngine {
   onInteract: (callback: (objectId: string) => void) => void;
   triggerWin: () => void;
   triggerFail: () => void;
+  triggerPickup: (x: number, y: number, label: string) => void;
 }
 
 export function createGameEngine(
@@ -195,10 +198,11 @@ export function createGameEngine(
     render(rc);
     ctx.restore();
 
-    // Render particles in screen space (on top of everything)
-    if (effects.particles.length > 0) {
+    // Render effects in world space (on top of everything)
+    if (effects.particles.length > 0 || effects.pickups.length > 0) {
       ctx.save();
       ctx.translate(-camera.x + shakeOffset.x, -camera.y + shakeOffset.y);
+      renderPickups(ctx, effects.pickups);
       renderParticles(ctx, effects.particles);
       ctx.restore();
     }
@@ -245,6 +249,9 @@ export function createGameEngine(
     },
     triggerFail() {
       effects = triggerFailShake(effects);
+    },
+    triggerPickup(x: number, y: number, label: string) {
+      effects = triggerPickup(effects, x, y, label);
     },
   };
 }

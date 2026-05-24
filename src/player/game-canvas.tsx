@@ -37,6 +37,23 @@ export function GameCanvas({
       const currentState = engine.getState();
       const newState = onInteractRef.current(objectId, currentState);
       if (newState) {
+        // Detect new items added to inventory
+        const addedItems = newState.inventory.filter(
+          (id) => !currentState.inventory.includes(id),
+        );
+        if (addedItems.length > 0) {
+          // Suppress message for collectibles and trigger pickup animation
+          newState.activeMessage = null;
+          newState.messageSourceId = null;
+          for (const itemId of addedItems) {
+            const obj = room.objects.find((o) => o.id === itemId);
+            if (obj) {
+              const cx = obj.position.x + obj.size.width / 2;
+              const cy = obj.position.y;
+              engine.triggerPickup(cx, cy, obj.name);
+            }
+          }
+        }
         engine.setState(newState);
         if (newState.solved && !currentState.solved) engine.triggerWin();
         if (newState.failed && !currentState.failed) engine.triggerFail();
