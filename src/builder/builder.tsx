@@ -11,6 +11,7 @@ import type {
   Vec2,
 } from "../shared/types";
 import { downloadRoom, importRoom, saveRoom } from "../storage/room-storage";
+import { AssetLibrary } from "./asset-library";
 import { BuilderCanvas, type BuilderTool } from "./builder-canvas";
 import { CommandPalette } from "./command-palette";
 import { LayerPanel } from "./layer-panel";
@@ -58,6 +59,7 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
   const [previewing, setPreviewing] = useState(false);
   const [saved, setSaved] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [assetsOpen, setAssetsOpen] = useState(false);
   const [viewport, setViewport] = useState({ x: 0, y: 0, width: 800, height: 600, zoom: 0.5 });
   const [navigateTarget, setNavigateTarget] = useState<{ x: number; y: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -323,6 +325,13 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
+            onClick={() => setAssetsOpen(true)}
+            className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground rounded-none px-2 py-1 h-auto"
+          >
+            Assets
+          </Button>
+          <Button
+            variant="ghost"
             onClick={handleImport}
             className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground rounded-none px-2 py-1 h-auto"
           >
@@ -459,6 +468,20 @@ export function Builder({ room: initialRoom, onExit }: BuilderProps) {
         onClose={() => setPaletteOpen(false)}
         onAddObject={addObject}
         onSetBackground={setBackground}
+      />
+
+      <AssetLibrary
+        open={assetsOpen}
+        onClose={() => setAssetsOpen(false)}
+        onSelect={(asset) => {
+          setAssetsOpen(false);
+          if (asset.type === "background") {
+            setRoom((r) => ({
+              ...r,
+              map: { ...r.map, backgroundUrl: asset.url },
+            }));
+          }
+        }}
       />
     </div>
   );

@@ -36,7 +36,9 @@ export function render(rc: RenderContext): void {
 
   drawBackground(rc);
   drawScene(rc);
-  drawInteractionPrompt(rc);
+  if (!rc.activeMessage) {
+    drawInteractionPrompt(rc);
+  }
   drawMessageBubble(rc);
 
   if (rc.debug) {
@@ -163,7 +165,7 @@ function drawPlayerCharacter(rc: RenderContext): void {
 }
 
 function drawInteractionPrompt(rc: RenderContext): void {
-  const { ctx, nearbyObjectId, objects } = rc;
+  const { ctx, camera, nearbyObjectId, objects } = rc;
   if (!nearbyObjectId) return;
 
   const obj = objects.find((o) => o.id === nearbyObjectId);
@@ -171,9 +173,8 @@ function drawInteractionPrompt(rc: RenderContext): void {
 
   const cx = obj.position.x + obj.size.width / 2;
   const floatOffset = Math.sin(Date.now() * 0.004) * 3;
-  const cy = obj.position.y - 16 + floatOffset;
 
-  // Key indicator
+  // Measure first to decide placement
   ctx.font = "bold 11px monospace";
   ctx.textAlign = "center";
   const label = `E  ${obj.name}`;
@@ -182,6 +183,12 @@ function drawInteractionPrompt(rc: RenderContext): void {
   const padY = 5;
   const w = metrics.width + padX * 2;
   const h = 14 + padY * 2;
+
+  // Place above object by default; if that goes off-screen, place below
+  const aboveY = obj.position.y - 16 + floatOffset;
+  const belowY = obj.position.y + obj.size.height + 16 + floatOffset;
+  const cy = aboveY - h / 2 < camera.y + 8 ? belowY : aboveY;
+
   const rx = cx - w / 2;
   const ry = cy - h / 2;
 
@@ -207,14 +214,13 @@ function drawInteractionPrompt(rc: RenderContext): void {
 }
 
 function drawMessageBubble(rc: RenderContext): void {
-  const { ctx, activeMessage, messageSourceId, objects } = rc;
+  const { ctx, camera, activeMessage, messageSourceId, objects } = rc;
   if (!activeMessage || !messageSourceId) return;
 
   const obj = objects.find((o) => o.id === messageSourceId);
   if (!obj) return;
 
   const cx = obj.position.x + obj.size.width / 2;
-  const cy = obj.position.y - 12;
 
   // Wrap text
   ctx.font = "11px monospace";
@@ -239,8 +245,14 @@ function drawMessageBubble(rc: RenderContext): void {
   const padY = 10;
   const bubbleW = Math.min(maxWidth + padX * 2, Math.max(...lines.map((l) => ctx.measureText(l).width)) + padX * 2);
   const bubbleH = lines.length * lineHeight + padY * 2;
+
+  // Decide: above or below the object
+  const aboveY = obj.position.y - 12 - bubbleH - 8;
+  const belowY = obj.position.y + obj.size.height + 20;
+  const placeBelow = aboveY < camera.y + 10;
+
+  const by = placeBelow ? belowY : aboveY;
   const bx = cx - bubbleW / 2;
-  const by = cy - bubbleH - 8;
 
   // Bubble background
   ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
@@ -254,9 +266,15 @@ function drawMessageBubble(rc: RenderContext): void {
   // Triangle pointer
   ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
   ctx.beginPath();
-  ctx.moveTo(cx - 6, by + bubbleH);
-  ctx.lineTo(cx, by + bubbleH + 6);
-  ctx.lineTo(cx + 6, by + bubbleH);
+  if (placeBelow) {
+    ctx.moveTo(cx - 6, by);
+    ctx.lineTo(cx, by - 6);
+    ctx.lineTo(cx + 6, by);
+  } else {
+    ctx.moveTo(cx - 6, by + bubbleH);
+    ctx.lineTo(cx, by + bubbleH + 6);
+    ctx.lineTo(cx + 6, by + bubbleH);
+  }
   ctx.closePath();
   ctx.fill();
   ctx.stroke();

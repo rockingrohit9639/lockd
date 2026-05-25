@@ -25,6 +25,18 @@ export function GameCanvas({
   const hasSelectedItemRef = useRef(hasSelectedItem);
   hasSelectedItemRef.current = hasSelectedItem;
 
+  // Sync meme dismissal from parent → engine
+  useEffect(() => {
+    const engine = engineRef.current;
+    if (!engine) return;
+    if (initialState.activeMeme === null) {
+      const engineState = engine.getState();
+      if (engineState.activeMeme !== null) {
+        engine.setState({ ...engineState, activeMeme: null });
+      }
+    }
+  }, [initialState.activeMeme]);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
